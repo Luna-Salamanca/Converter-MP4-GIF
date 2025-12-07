@@ -29,6 +29,18 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Debug - List dist contents
+        run: |
+          echo "=== Root dist ==="
+          ls -la dist/ || echo "dist/ does not exist"
+          echo ""
+          echo "=== dist/public ==="
+          ls -la dist/public/ || echo "dist/public/ does not exist"
+          echo ""
+          echo "=== Current directory ==="
+          pwd
+          ls -la
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
