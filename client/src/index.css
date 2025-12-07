@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -28,10 +28,10 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
-  
+
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
-  
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -42,36 +42,36 @@
   /* Neutral Grays & Cyan/Purple Accents */
   --background: 240 10% 3.9%; /* Almost black */
   --foreground: 0 0% 98%;
-  
+
   --card: 240 10% 6%;
   --card-foreground: 0 0% 98%;
-  
+
   --popover: 240 10% 6%;
   --popover-foreground: 0 0% 98%;
-  
+
   /* Sky Blue Primary */
   --primary: 199 100% 65%;
   --primary-foreground: 0 0% 0%; /* Dark text on light blue for contrast */
-  
+
   /* Deep Purple Secondary - Keeping as accent or changing? User only specified primary change "change the purple back" */
   --secondary: 260 60% 60%;
   --secondary-foreground: 210 40% 98%;
-  
+
   --muted: 240 5% 15%;
   --muted-foreground: 240 5% 65%;
-  
+
   --accent: 240 5% 15%; /* Hover state */
   --accent-foreground: 0 0% 98%;
-  
+
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  
+
   --border: 240 5% 15%;
   --input: 240 5% 15%;
   --ring: 199 100% 65%;
-  
+
   --radius: 0.5rem;
-  
+
   --chart-1: 199 100% 65%;
   --chart-2: 260 60% 60%;
   --chart-3: 330 70% 60%;
@@ -109,7 +109,12 @@
   body {
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display tracking-tight;
   }
 }
