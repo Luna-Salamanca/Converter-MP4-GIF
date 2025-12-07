@@ -24,8 +24,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Debug - Check dist folder
+        run: |
+          echo "=== Listing dist ==="
+          ls -la dist/
+          echo "=== Listing dist/public ==="
+          ls -la dist/public/ || echo "dist/public does not exist"
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist/public
+          publish_dir: ./dist/public
