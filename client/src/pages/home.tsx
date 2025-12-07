@@ -38,10 +38,9 @@ export default function Home() {
             </h1>
 
             <p className="text-xl text-muted-foreground text-balance max-w-2xl mx-auto">
-              Fast, private, and powerful. Convert MP4, MOV, and WebM to
-              high-quality animated GIFs directly in your browser. No server
-              uploads.
-            </p>
+                                  Fast, private, and powerful. Convert MP4, MOV, and WebM to
+                                  high-quality animated GIFs directly in your browser. No server
+                                  uploads.            </p>
           </motion.div>
 
           <Dropzone />
@@ -55,7 +54,7 @@ export default function Home() {
             {[
               { label: 'Privacy First', desc: '100% Client-side' },
               { label: 'High Quality', desc: 'Optimized Colors' },
-              { label: 'Lightning Fast', desc: 'WASM Powered' },
+              { label: 'For you', desc: 'My Cassie 💝' },
               { label: 'Free Forever', desc: 'No Watermarks' },
             ].map((item, i) => (
               <div key={i} className="space-y-1">

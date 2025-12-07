@@ -8,11 +8,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/" className="flex items-center gap-2 group">
             <div className="size-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-primary/20 transition-all">
               <span className="font-display font-bold text-background text-lg">
-                G
+                C
               </span>
             </div>
             <span className="font-display font-bold text-xl tracking-tight group-hover:text-primary transition-colors">
-              GIFcraft
+                        Cassi-Fi
             </span>
           </Link>
 
@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <main>{children}</main>
       <footer className="border-t border-border/40 py-8 mt-20 bg-muted/20">
         <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-          <p>© 2025 GIFcraft. All processing happens in your browser.</p>
+          <p>© 2025           Cassi-Fi. All processing happens in your browser.</p>
         </div>
       </footer>
     </div>

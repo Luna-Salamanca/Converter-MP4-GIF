@@ -61,23 +61,42 @@ export function SettingsPanel({
   }, [])
 
   useEffect(() => {
-    const duration = Math.max(0.1, trimRange[1] - trimRange[0])
-    const numFrames = duration * fps[0]
-    const pixelCount =
-      (crop.width / 100) *
-      videoDimensions.width *
-      ((crop.height / 100) * videoDimensions.height)
+    const duration = Math.max(0.1, trimRange[1] - trimRange[0]);
+    const numFrames = duration * fps[0];
+
+    const originalWidth = videoDimensions.width;
+    const originalHeight = videoDimensions.height;
+
+    const cropW = Math.floor((crop.width / 100) * originalWidth);
+    const cropH = Math.floor((crop.height / 100) * originalHeight);
+
+    let currentGifWidth = cropW;
+    let currentGifHeight = cropH;
+
+    if (width !== 'original') {
+      const targetWidth = parseInt(width);
+      const ratio = cropH / cropW;
+      currentGifWidth = targetWidth;
+      currentGifHeight = Math.round(targetWidth * ratio);
+    }
+
+    const pixelCount = currentGifWidth * currentGifHeight;
+
+    // Determine the effective quality based on fastMode and compression settings
+    const effectiveQuality = fastMode ? 30 : Math.max(1, Math.floor(compression[0] / 3));
 
     // Heuristic for GIF size estimation
-    // Base factor: 0.8 bytes/pixel for high quality, down to 0.2 for high compression
-    // This is an approximation as GIF compression depends heavily on content complexity (colors/motion)
-    const compressionFactor = 0.8 - (compression[0] / 100) * 0.6
+    // Invert the quality scale for compressionFactor:
+    // gif.js quality: 1 (best) -> 30 (worst/fastest)
+    // est. size compressionFactor: 0.8 (largest size) -> 0.2 (smallest size)
+    // A simple linear mapping: (30 - effectiveQuality) / 29 * (0.8 - 0.2) + 0.2
+    const compressionFactor = ((30 - effectiveQuality) / 29) * 0.6 + 0.2;
 
-    const bytes = numFrames * pixelCount * compressionFactor
-    const mb = bytes / (1024 * 1024)
+    const bytes = numFrames * pixelCount * compressionFactor;
+    const mb = bytes / (1024 * 1024);
 
-    setEstSize(mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(1)} MB`)
-  }, [fps, trimRange, crop, videoDimensions, compression])
+    setEstSize(mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(1)} MB`);
+  }, [fps, trimRange, crop, videoDimensions, compression, width, fastMode]);
 
   const handleExport = async () => {
     console.log('Starting export process.');
@@ -327,10 +346,31 @@ export function SettingsPanel({
 
         {/* Resolution */}
         <div className="space-y-4">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <Monitor className="size-4 text-muted-foreground" />
-            Dimensions
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <Monitor className="size-4 text-muted-foreground" />
+              Dimensions
+            </label>
+            <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-1 rounded">
+              {(() => {
+                const originalWidth = videoDimensions.width;
+                const originalHeight = videoDimensions.height;
+                const cropW = Math.floor((crop.width / 100) * originalWidth);
+                const cropH = Math.floor((crop.height / 100) * originalHeight);
+
+                let currentGifWidth = cropW;
+                let currentGifHeight = cropH;
+
+                if (width !== 'original') {
+                  const targetWidth = parseInt(width);
+                  const ratio = cropH / cropW;
+                  currentGifWidth = targetWidth;
+                  currentGifHeight = Math.round(targetWidth * ratio);
+                }
+                return width === 'original' ? `${originalWidth}x${originalHeight} (Original)` : `${currentGifWidth}x${currentGifHeight}`;
+              })()}
+            </span>
+          </div>
           <Select
             defaultValue="original"
             onValueChange={setWidth}
@@ -343,9 +383,9 @@ export function SettingsPanel({
               <SelectItem value="original">
                 Original ({videoDimensions.width}x{videoDimensions.height})
               </SelectItem>
-              <SelectItem value="720">HD (720p)</SelectItem>
-              <SelectItem value="480">Social (480p)</SelectItem>
-              <SelectItem value="360">Mobile (360p)</SelectItem>
+              <SelectItem value="720">HD (720px Width)</SelectItem>
+              <SelectItem value="480">Social (480px Width)</SelectItem>
+              <SelectItem value="360">Mobile (360px Width)</SelectItem>
             </SelectContent>
           </Select>
         </div>
