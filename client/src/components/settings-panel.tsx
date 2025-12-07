@@ -80,99 +80,122 @@ export function SettingsPanel({
   }, [fps, trimRange, crop, videoDimensions, compression])
 
   const handleExport = async () => {
-    const { url, file } = getVideo()
+    console.log('Starting export process.');
+    const { url, file } = getVideo();
 
     if (!url) {
       toast({
         title: 'Export Failed',
         description: 'No video source found to export.',
         variant: 'destructive',
-      })
-      return
+      });
+      console.error('Export Failed: No video source URL found.');
+      return;
     }
 
-    setIsExporting(true)
-    setProgress(0)
+    setIsExporting(true);
+    setProgress(0);
     toast({
       title: 'Starting Export...',
       description: fastMode
         ? 'Generating fast preview...'
         : 'Processing your video frames. This may take a moment.',
-    })
+    });
 
-    const tempVideo = document.createElement('video')
-    tempVideo.src = url
-    tempVideo.crossOrigin = 'anonymous'
-    tempVideo.muted = true
-    tempVideo.playsInline = true
+    const tempVideo = document.createElement('video');
+    tempVideo.src = url;
+    tempVideo.crossOrigin = 'anonymous';
+    tempVideo.muted = true;
+    tempVideo.playsInline = true;
 
+    console.log('Loading video metadata...');
     await new Promise<void>((resolve, reject) => {
-      tempVideo.onloadedmetadata = () => resolve()
-      tempVideo.onerror = () => reject('Could not load video metadata')
-    })
+      tempVideo.onloadedmetadata = () => {
+        console.log('Video metadata loaded.');
+        resolve();
+      };
+      tempVideo.onerror = (e) => {
+        console.error('Failed to load video metadata:', e);
+        reject('Could not load video metadata');
+      };
+    }).catch((error) => {
+      setIsExporting(false);
+      toast({
+        title: 'Export Failed',
+        description: error,
+        variant: 'destructive',
+      });
+      return;
+    });
 
-    const originalWidth = tempVideo.videoWidth
-    const originalHeight = tempVideo.videoHeight
+    const originalWidth = tempVideo.videoWidth;
+    const originalHeight = tempVideo.videoHeight;
+    console.log(`Original video dimensions: ${originalWidth}x${originalHeight}`);
 
-    const cropX = Math.floor((crop.x / 100) * originalWidth)
-    const cropY = Math.floor((crop.y / 100) * originalHeight)
-    const cropW = Math.floor((crop.width / 100) * originalWidth)
-    const cropH = Math.floor((crop.height / 100) * originalHeight)
+    const cropX = Math.floor((crop.x / 100) * originalWidth);
+    const cropY = Math.floor((crop.y / 100) * originalHeight);
+    const cropW = Math.floor((crop.width / 100) * originalWidth);
+    const cropH = Math.floor((crop.height / 100) * originalHeight);
+    console.log(`Crop dimensions: X:${cropX}, Y:${cropY}, W:${cropW}, H:${cropH}`);
 
-    let gifWidth = cropW
-    let gifHeight = cropH
+    let gifWidth = cropW;
+    let gifHeight = cropH;
 
     if (width !== 'original') {
-      const targetWidth = parseInt(width)
-      const ratio = cropH / cropW
-      gifWidth = targetWidth
-      gifHeight = Math.round(targetWidth * ratio)
+      const targetWidth = parseInt(width);
+      const ratio = cropH / cropW;
+      gifWidth = targetWidth;
+      gifHeight = Math.round(targetWidth * ratio);
     }
+    console.log(`GIF output dimensions: ${gifWidth}x${gifHeight}`);
 
     if (gifWidth <= 0 || gifHeight <= 0) {
-      setIsExporting(false)
+      setIsExporting(false);
       toast({
         title: 'Export Failed',
         description: 'Invalid dimensions. Please check your crop settings.',
         variant: 'destructive',
-      })
-      return
+      });
+      console.error('Export Failed: Invalid GIF dimensions.');
+      return;
     }
 
-    const duration = Math.max(0.1, trimRange[1] - trimRange[0])
-    const numFrames = Math.max(1, Math.floor(duration * fps[0]))
-    const delay = 1000 / fps[0] // Delay in ms
+    const duration = Math.max(0.1, trimRange[1] - trimRange[0]);
+    const numFrames = Math.max(1, Math.floor(duration * fps[0]));
+    const delay = 1000 / fps[0]; // Delay in ms
 
-    // Quality setting: 1 is best, 20+ is faster/lower quality
-    // Map compression 0-100 to quality 1-30 normally
-    // In Fast Mode, force quality to 30 (very fast sampling)
-    const quality = fastMode ? 30 : Math.max(1, Math.floor(compression[0] / 3))
+    const quality = fastMode ? 30 : Math.max(1, Math.floor(compression[0] / 3));
+    console.log(`GIF settings: numFrames=${numFrames}, delay=${delay}, quality=${quality}`);
 
+    console.log('Initializing GIF worker...');
     const gif = new GIF({
       workers: navigator.hardwareConcurrency || 4, // Use all available cores
       quality: quality,
       width: gifWidth,
       height: gifHeight,
-      workerScript: '/gif.worker.js',
-    })
+      workerScript: import.meta.env.BASE_URL + 'gif.worker.js',
+    });
 
     gif.on('progress', (p: number) => {
-      setProgress(Math.round(p * 100))
-    })
+      const currentProgress = Math.round(p * 100);
+      console.log(`GIF worker progress: ${currentProgress}%`);
+      setProgress(currentProgress);
+    });
 
     gif.on('finished', (blob: Blob) => {
-      setIsExporting(false)
-      setProgress(0)
+      console.log('GIF worker finished encoding.');
+      setIsExporting(false);
+      setProgress(0);
 
-      const image = URL.createObjectURL(blob)
-      const animatedImage = document.createElement('a')
-      animatedImage.href = image
-      animatedImage.download = (filename || 'export') + '.gif'
-      document.body.appendChild(animatedImage)
-      animatedImage.click()
-      document.body.removeChild(animatedImage)
+      const image = URL.createObjectURL(blob);
+      const animatedImage = document.createElement('a');
+      animatedImage.href = image;
+      animatedImage.download = (filename || 'export') + '.gif';
+      document.body.appendChild(animatedImage);
+      animatedImage.click();
+      document.body.removeChild(animatedImage);
 
-      onExport?.()
+      onExport?.();
       toast({
         title: 'Export Complete!',
         description: 'Your GIF has been generated and downloaded.',
@@ -182,39 +205,40 @@ export function SettingsPanel({
             View
           </Button>
         ),
-      })
-    })
+      });
+    });
 
     // Frame capture loop
-    const canvas = document.createElement('canvas')
-    canvas.width = gifWidth
-    canvas.height = gifHeight
-    const ctx = canvas.getContext('2d', { willReadFrequently: true }) // Optimize for readback
+    const canvas = document.createElement('canvas');
+    canvas.width = gifWidth;
+    canvas.height = gifHeight;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }); // Optimize for readback
 
     if (!ctx) {
-      setIsExporting(false)
+      setIsExporting(false);
       toast({
         title: 'Error',
         description: 'Could not create canvas context',
         variant: 'destructive',
-      })
-      return
+      });
+      console.error('Export Failed: Could not create canvas context.');
+      return;
     }
 
     try {
+      console.log('Starting frame capture loop...');
       for (let i = 0; i < numFrames; i++) {
-        const time = trimRange[0] + i / fps[0]
-        tempVideo.currentTime = time
+        const time = trimRange[0] + i / fps[0];
+        tempVideo.currentTime = time;
 
         await new Promise<void>((resolve) => {
           const onSeeked = () => {
-            tempVideo.removeEventListener('seeked', onSeeked)
-            resolve()
-          }
-          tempVideo.addEventListener('seeked', onSeeked)
-        })
+            tempVideo.removeEventListener('seeked', onSeeked);
+            resolve();
+          };
+          tempVideo.addEventListener('seeked', onSeeked);
+        });
 
-        // Draw to canvas with crop and scale
         ctx.drawImage(
           tempVideo,
           cropX,
@@ -225,24 +249,25 @@ export function SettingsPanel({
           0,
           gifWidth,
           gifHeight // Destination size
-        )
+        );
 
-        gif.addFrame(ctx, { copy: true, delay: delay })
+        gif.addFrame(ctx, { copy: true, delay: delay });
 
         // Update progress for capture phase (first 50%)
-        setProgress(Math.round((i / numFrames) * 50))
+        setProgress(Math.round((i / numFrames) * 50));
+        console.log(`Captured frame ${i + 1}/${numFrames}. Progress: ${Math.round((i / numFrames) * 50)}%`);
       }
+      console.log('Frame capture loop completed. Initiating GIF render...');
 
-      // Render phase (last 50%)
-      gif.render()
+      gif.render();
     } catch (err) {
-      console.error(err)
-      setIsExporting(false)
+      console.error('Error during frame capture or GIF rendering:', err);
+      setIsExporting(false);
       toast({
         title: 'Error',
         description: 'Failed to process video frames',
         variant: 'destructive',
-      })
+      });
     }
   }
 
@@ -296,11 +321,6 @@ export function SettingsPanel({
             step={1}
             className="[&>.range]:bg-primary"
           />
-          <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-wider">
-            <span>Cinematic</span>
-            <span>Smooth</span>
-            <span>Fluid</span>
-          </div>
         </div>
 
         <Separator />
