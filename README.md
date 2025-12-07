@@ -36,7 +36,7 @@ For a detailed development log and a comprehensive list of all changes, please r
 
 ## Deployment to GitHub Pages
 
-This application can be deployed to GitHub Pages.
+This application can be deployed to GitHub Pages. 
 
 ### Manual Deployment
 
