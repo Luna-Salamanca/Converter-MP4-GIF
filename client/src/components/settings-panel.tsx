@@ -1,212 +1,251 @@
-import { useState, useEffect } from "react";
-import { Settings, Sliders, Monitor, Download, Share2, FileVideo, Palette, Zap, FilePenLine, Gauge } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
-import { getVideo } from "@/lib/video-state";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from 'react'
+import {
+  Settings,
+  Sliders,
+  Monitor,
+  Download,
+  Share2,
+  FileVideo,
+  Palette,
+  Zap,
+  FilePenLine,
+  Gauge,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Slider } from '@/components/ui/slider'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { toast } from '@/hooks/use-toast'
+import { getVideo } from '@/lib/video-state'
+import { Label } from '@/components/ui/label'
 // @ts-ignore
-import GIF from "gif.js";
+import GIF from 'gif.js'
 
 interface SettingsPanelProps {
-  onExport?: () => void;
-  trimRange?: number[];
-  crop?: { x: number; y: number; width: number; height: number };
-  videoDimensions?: { width: number; height: number };
+  onExport?: () => void
+  trimRange?: number[]
+  crop?: { x: number; y: number; width: number; height: number }
+  videoDimensions?: { width: number; height: number }
 }
 
-export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 0, width: 100, height: 100 }, videoDimensions = { width: 1920, height: 1080 } }: SettingsPanelProps) {
-  const [fps, setFps] = useState([60]);
-  const [compression, setCompression] = useState([30]); // 0-100, where 100 is max compression
-  const [isExporting, setIsExporting] = useState(false);
-  const [width, setWidth] = useState("original");
-  const [filename, setFilename] = useState("");
-  const [fastMode, setFastMode] = useState(false);
-  
-  const [progress, setProgress] = useState(0);
-  const [estSize, setEstSize] = useState("Calculating...");
+export function SettingsPanel({
+  onExport,
+  trimRange = [0, 5],
+  crop = { x: 0, y: 0, width: 100, height: 100 },
+  videoDimensions = { width: 1920, height: 1080 },
+}: SettingsPanelProps) {
+  const [fps, setFps] = useState([60])
+  const [compression, setCompression] = useState([30]) // 0-100, where 100 is max compression
+  const [isExporting, setIsExporting] = useState(false)
+  const [width, setWidth] = useState('original')
+  const [filename, setFilename] = useState('')
+  const [fastMode, setFastMode] = useState(false)
+
+  const [progress, setProgress] = useState(0)
+  const [estSize, setEstSize] = useState('Calculating...')
 
   useEffect(() => {
-    const { file } = getVideo();
+    const { file } = getVideo()
     if (file && !filename) {
-        setFilename(file.name.replace(/\.[^/.]+$/, ""));
+      setFilename(file.name.replace(/\.[^/.]+$/, ''))
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    const duration = Math.max(0.1, trimRange[1] - trimRange[0]);
-    const numFrames = duration * fps[0];
-    const pixelCount = (crop.width / 100 * videoDimensions.width) * (crop.height / 100 * videoDimensions.height);
-    
+    const duration = Math.max(0.1, trimRange[1] - trimRange[0])
+    const numFrames = duration * fps[0]
+    const pixelCount =
+      (crop.width / 100) *
+      videoDimensions.width *
+      ((crop.height / 100) * videoDimensions.height)
+
     // Heuristic for GIF size estimation
     // Base factor: 0.8 bytes/pixel for high quality, down to 0.2 for high compression
     // This is an approximation as GIF compression depends heavily on content complexity (colors/motion)
-    const compressionFactor = 0.8 - ((compression[0] / 100) * 0.6);
-    
-    const bytes = numFrames * pixelCount * compressionFactor;
-    const mb = bytes / (1024 * 1024);
-    
-    setEstSize(mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(1)} MB`);
-  }, [fps, trimRange, crop, videoDimensions, compression]);
+    const compressionFactor = 0.8 - (compression[0] / 100) * 0.6
+
+    const bytes = numFrames * pixelCount * compressionFactor
+    const mb = bytes / (1024 * 1024)
+
+    setEstSize(mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(1)} MB`)
+  }, [fps, trimRange, crop, videoDimensions, compression])
 
   const handleExport = async () => {
-    const { url, file } = getVideo();
-    
+    const { url, file } = getVideo()
+
     if (!url) {
-        toast({
-            title: "Export Failed",
-            description: "No video source found to export.",
-            variant: "destructive",
-        });
-        return;
+      toast({
+        title: 'Export Failed',
+        description: 'No video source found to export.',
+        variant: 'destructive',
+      })
+      return
     }
 
-    setIsExporting(true);
-    setProgress(0);
+    setIsExporting(true)
+    setProgress(0)
     toast({
-      title: "Starting Export...",
-      description: fastMode ? "Generating fast preview..." : "Processing your video frames. This may take a moment.",
-    });
+      title: 'Starting Export...',
+      description: fastMode
+        ? 'Generating fast preview...'
+        : 'Processing your video frames. This may take a moment.',
+    })
 
-    const tempVideo = document.createElement('video');
-    tempVideo.src = url;
-    tempVideo.crossOrigin = "anonymous";
-    tempVideo.muted = true;
-    tempVideo.playsInline = true;
+    const tempVideo = document.createElement('video')
+    tempVideo.src = url
+    tempVideo.crossOrigin = 'anonymous'
+    tempVideo.muted = true
+    tempVideo.playsInline = true
 
     await new Promise<void>((resolve, reject) => {
-        tempVideo.onloadedmetadata = () => resolve();
-        tempVideo.onerror = () => reject("Could not load video metadata");
-    });
+      tempVideo.onloadedmetadata = () => resolve()
+      tempVideo.onerror = () => reject('Could not load video metadata')
+    })
 
-    const originalWidth = tempVideo.videoWidth;
-    const originalHeight = tempVideo.videoHeight;
-    
-    const cropX = Math.floor((crop.x / 100) * originalWidth);
-    const cropY = Math.floor((crop.y / 100) * originalHeight);
-    const cropW = Math.floor((crop.width / 100) * originalWidth);
-    const cropH = Math.floor((crop.height / 100) * originalHeight);
+    const originalWidth = tempVideo.videoWidth
+    const originalHeight = tempVideo.videoHeight
 
-    let gifWidth = cropW;
-    let gifHeight = cropH;
+    const cropX = Math.floor((crop.x / 100) * originalWidth)
+    const cropY = Math.floor((crop.y / 100) * originalHeight)
+    const cropW = Math.floor((crop.width / 100) * originalWidth)
+    const cropH = Math.floor((crop.height / 100) * originalHeight)
 
-    if (width !== "original") {
-         const targetWidth = parseInt(width);
-         const ratio = cropH / cropW;
-         gifWidth = targetWidth;
-         gifHeight = Math.round(targetWidth * ratio);
+    let gifWidth = cropW
+    let gifHeight = cropH
+
+    if (width !== 'original') {
+      const targetWidth = parseInt(width)
+      const ratio = cropH / cropW
+      gifWidth = targetWidth
+      gifHeight = Math.round(targetWidth * ratio)
     }
 
     if (gifWidth <= 0 || gifHeight <= 0) {
-        setIsExporting(false);
-        toast({
-           title: "Export Failed",
-           description: "Invalid dimensions. Please check your crop settings.",
-           variant: "destructive",
-       });
-       return;
-   }
+      setIsExporting(false)
+      toast({
+        title: 'Export Failed',
+        description: 'Invalid dimensions. Please check your crop settings.',
+        variant: 'destructive',
+      })
+      return
+    }
 
-    const duration = Math.max(0.1, trimRange[1] - trimRange[0]);
-    const numFrames = Math.max(1, Math.floor(duration * fps[0]));
-    const delay = 1000 / fps[0]; // Delay in ms
+    const duration = Math.max(0.1, trimRange[1] - trimRange[0])
+    const numFrames = Math.max(1, Math.floor(duration * fps[0]))
+    const delay = 1000 / fps[0] // Delay in ms
 
     // Quality setting: 1 is best, 20+ is faster/lower quality
     // Map compression 0-100 to quality 1-30 normally
     // In Fast Mode, force quality to 30 (very fast sampling)
-    const quality = fastMode ? 30 : Math.max(1, Math.floor(compression[0] / 3));
+    const quality = fastMode ? 30 : Math.max(1, Math.floor(compression[0] / 3))
 
     const gif = new GIF({
-        workers: navigator.hardwareConcurrency || 4, // Use all available cores
-        quality: quality, 
-        width: gifWidth,
-        height: gifHeight,
-        workerScript: '/gif.worker.js'
-    });
+      workers: navigator.hardwareConcurrency || 4, // Use all available cores
+      quality: quality,
+      width: gifWidth,
+      height: gifHeight,
+      workerScript: '/gif.worker.js',
+    })
 
     gif.on('progress', (p: number) => {
-        setProgress(Math.round(p * 100));
-    });
+      setProgress(Math.round(p * 100))
+    })
 
     gif.on('finished', (blob: Blob) => {
-        setIsExporting(false);
-        setProgress(0);
-        
-        const image = URL.createObjectURL(blob);
-        const animatedImage = document.createElement('a');
-        animatedImage.href = image;
-        animatedImage.download = (filename || "export") + ".gif";
-        document.body.appendChild(animatedImage);
-        animatedImage.click();
-        document.body.removeChild(animatedImage);
-        
-        onExport?.();
-        toast({
-            title: "Export Complete!",
-            description: "Your GIF has been generated and downloaded.",
-            variant: "default",
-            action: (
-                <Button size="sm" onClick={() => window.open(image, '_blank')}>
-                View
-                </Button>
-            ),
-        });
-    });
+      setIsExporting(false)
+      setProgress(0)
+
+      const image = URL.createObjectURL(blob)
+      const animatedImage = document.createElement('a')
+      animatedImage.href = image
+      animatedImage.download = (filename || 'export') + '.gif'
+      document.body.appendChild(animatedImage)
+      animatedImage.click()
+      document.body.removeChild(animatedImage)
+
+      onExport?.()
+      toast({
+        title: 'Export Complete!',
+        description: 'Your GIF has been generated and downloaded.',
+        variant: 'default',
+        action: (
+          <Button size="sm" onClick={() => window.open(image, '_blank')}>
+            View
+          </Button>
+        ),
+      })
+    })
 
     // Frame capture loop
-    const canvas = document.createElement('canvas');
-    canvas.width = gifWidth;
-    canvas.height = gifHeight;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true }); // Optimize for readback
+    const canvas = document.createElement('canvas')
+    canvas.width = gifWidth
+    canvas.height = gifHeight
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }) // Optimize for readback
 
     if (!ctx) {
-        setIsExporting(false);
-        toast({ title: "Error", description: "Could not create canvas context", variant: "destructive" });
-        return;
+      setIsExporting(false)
+      toast({
+        title: 'Error',
+        description: 'Could not create canvas context',
+        variant: 'destructive',
+      })
+      return
     }
 
     try {
-        for (let i = 0; i < numFrames; i++) {
-            const time = trimRange[0] + (i / fps[0]);
-            tempVideo.currentTime = time;
-            
-            await new Promise<void>((resolve) => {
-                const onSeeked = () => {
-                    tempVideo.removeEventListener('seeked', onSeeked);
-                    resolve();
-                };
-                tempVideo.addEventListener('seeked', onSeeked);
-            });
+      for (let i = 0; i < numFrames; i++) {
+        const time = trimRange[0] + i / fps[0]
+        tempVideo.currentTime = time
 
-            // Draw to canvas with crop and scale
-            ctx.drawImage(
-                tempVideo, 
-                cropX, cropY, cropW, cropH, // Source crop
-                0, 0, gifWidth, gifHeight   // Destination size
-            );
+        await new Promise<void>((resolve) => {
+          const onSeeked = () => {
+            tempVideo.removeEventListener('seeked', onSeeked)
+            resolve()
+          }
+          tempVideo.addEventListener('seeked', onSeeked)
+        })
 
-            gif.addFrame(ctx, {copy: true, delay: delay});
-            
-            // Update progress for capture phase (first 50%)
-            setProgress(Math.round((i / numFrames) * 50));
-        }
+        // Draw to canvas with crop and scale
+        ctx.drawImage(
+          tempVideo,
+          cropX,
+          cropY,
+          cropW,
+          cropH, // Source crop
+          0,
+          0,
+          gifWidth,
+          gifHeight // Destination size
+        )
 
-        // Render phase (last 50%)
-        gif.render();
+        gif.addFrame(ctx, { copy: true, delay: delay })
 
+        // Update progress for capture phase (first 50%)
+        setProgress(Math.round((i / numFrames) * 50))
+      }
+
+      // Render phase (last 50%)
+      gif.render()
     } catch (err) {
-        console.error(err);
-        setIsExporting(false);
-        toast({ title: "Error", description: "Failed to process video frames", variant: "destructive" });
+      console.error(err)
+      setIsExporting(false)
+      toast({
+        title: 'Error',
+        description: 'Failed to process video frames',
+        variant: 'destructive',
+      })
     }
-  };
+  }
 
-  
   return (
     <div className="h-full flex flex-col bg-card border-l border-border">
       <div className="p-4 border-b border-border">
@@ -219,19 +258,21 @@ export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 
       <div className="flex-1 overflow-y-auto p-4 space-y-8">
         {/* Filename Input */}
         <div className="space-y-4">
-           <label className="text-sm font-medium flex items-center gap-2">
-              <FilePenLine className="size-4 text-muted-foreground" />
-              Filename
-            </label>
-            <div className="flex items-center gap-2">
-              <Input 
-                value={filename}
-                onChange={(e) => setFilename(e.target.value)}
-                placeholder="Enter filename"
-                className="font-mono text-sm bg-background"
-              />
-              <span className="text-sm text-muted-foreground font-mono">.gif</span>
-            </div>
+          <label className="text-sm font-medium flex items-center gap-2">
+            <FilePenLine className="size-4 text-muted-foreground" />
+            Filename
+          </label>
+          <div className="flex items-center gap-2">
+            <Input
+              value={filename}
+              onChange={(e) => setFilename(e.target.value)}
+              placeholder="Enter filename"
+              className="font-mono text-sm bg-background"
+            />
+            <span className="text-sm text-muted-foreground font-mono">
+              .gif
+            </span>
+          </div>
         </div>
 
         <Separator />
@@ -247,12 +288,12 @@ export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 
               {fps} FPS
             </span>
           </div>
-          <Slider 
-            value={fps} 
-            onValueChange={setFps} 
-            max={60} 
-            min={5} 
-            step={1} 
+          <Slider
+            value={fps}
+            onValueChange={setFps}
+            max={60}
+            min={5}
+            step={1}
             className="[&>.range]:bg-primary"
           />
           <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -266,21 +307,27 @@ export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 
 
         {/* Resolution */}
         <div className="space-y-4">
-           <label className="text-sm font-medium flex items-center gap-2">
-              <Monitor className="size-4 text-muted-foreground" />
-              Dimensions
-            </label>
-            <Select defaultValue="original" onValueChange={setWidth} value={width}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select size" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="original">Original ({videoDimensions.width}x{videoDimensions.height})</SelectItem>
-                <SelectItem value="720">HD (720p)</SelectItem>
-                <SelectItem value="480">Social (480p)</SelectItem>
-                <SelectItem value="360">Mobile (360p)</SelectItem>
-              </SelectContent>
-            </Select>
+          <label className="text-sm font-medium flex items-center gap-2">
+            <Monitor className="size-4 text-muted-foreground" />
+            Dimensions
+          </label>
+          <Select
+            defaultValue="original"
+            onValueChange={setWidth}
+            value={width}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select size" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="original">
+                Original ({videoDimensions.width}x{videoDimensions.height})
+              </SelectItem>
+              <SelectItem value="720">HD (720p)</SelectItem>
+              <SelectItem value="480">Social (480p)</SelectItem>
+              <SelectItem value="360">Mobile (360p)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Separator />
@@ -293,19 +340,23 @@ export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 
               Compression
             </label>
             <span className="text-xs text-muted-foreground">
-              {compression[0] < 30 ? "High Quality" : compression[0] < 70 ? "Balanced" : "Small Size"}
+              {compression[0] < 30
+                ? 'High Quality'
+                : compression[0] < 70
+                  ? 'Balanced'
+                  : 'Small Size'}
             </span>
           </div>
-          
-          <Slider 
-            value={compression} 
-            onValueChange={setCompression} 
-            max={100} 
+
+          <Slider
+            value={compression}
+            onValueChange={setCompression}
+            max={100}
             step={1}
             disabled={fastMode}
-            className={fastMode ? "opacity-50" : "py-2"}
+            className={fastMode ? 'opacity-50' : 'py-2'}
           />
-          
+
           <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-wider">
             <span>Best Quality</span>
             <span>Small Size</span>
@@ -316,22 +367,21 @@ export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 
 
         {/* Optimization / Draft Mode */}
         <div className="flex items-center justify-between space-x-2">
-            <div className="space-y-1">
-                <Label htmlFor="fast-mode" className="flex items-center gap-2">
-                    <Gauge className="size-4 text-muted-foreground" />
-                    Draft Mode (Fast)
-                </Label>
-                <p className="text-[10px] text-muted-foreground max-w-[200px]">
-                    Reduces color sampling for faster export. Great for testing.
-                </p>
-            </div>
-            <Switch 
-                id="fast-mode" 
-                checked={fastMode} 
-                onCheckedChange={setFastMode} 
-            />
+          <div className="space-y-1">
+            <Label htmlFor="fast-mode" className="flex items-center gap-2">
+              <Gauge className="size-4 text-muted-foreground" />
+              Draft Mode (Fast)
+            </Label>
+            <p className="text-[10px] text-muted-foreground max-w-[200px]">
+              Reduces color sampling for faster export. Great for testing.
+            </p>
+          </div>
+          <Switch
+            id="fast-mode"
+            checked={fastMode}
+            onCheckedChange={setFastMode}
+          />
         </div>
-        
       </div>
 
       {/* Action Bar */}
@@ -340,22 +390,26 @@ export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 
           <span>Est. Size:</span>
           <span className="font-mono font-bold text-foreground">{estSize}</span>
         </div>
-        <Button 
-          className="w-full gap-2 font-bold" 
+        <Button
+          className="w-full gap-2 font-bold"
           size="lg"
           onClick={handleExport}
           disabled={isExporting}
         >
           {isExporting ? (
-             <>
-               <div className="size-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
-               {progress === 100 ? "Finalizing..." : progress > 0 ? `Processing ${progress}%` : "Processing..."}
-             </>
+            <>
+              <div className="size-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+              {progress === 100
+                ? 'Finalizing...'
+                : progress > 0
+                  ? `Processing ${progress}%`
+                  : 'Processing...'}
+            </>
           ) : (
-             <>
-               <Download className="size-4" />
-               Export GIF
-             </>
+            <>
+              <Download className="size-4" />
+              Export GIF
+            </>
           )}
         </Button>
         <Button variant="outline" className="w-full gap-2">
@@ -364,5 +418,5 @@ export function SettingsPanel({ onExport, trimRange = [0, 5], crop = { x: 0, y: 
         </Button>
       </div>
     </div>
-  );
+  )
 }

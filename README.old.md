@@ -29,10 +29,12 @@ Follow these steps to set up the project locally.
 ### 1. Clone or Download the Repository
 
 If you have git installed:
+
 ```bash
 git clone <repository-url>
 cd video-gif-converter
 ```
+
 Or download the ZIP file and extract it.
 
 ### 2. Install Dependencies

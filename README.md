@@ -1,4 +1,4 @@
-# Converter-MP4-GIF 
+# Converter-MP4-GIF
 
 This is a web application for converting MP4 videos to GIFs.
 
@@ -6,7 +6,7 @@ This is a web application for converting MP4 videos to GIFs.
 
 To run the application in development mode, you need to have Node.js and npm installed.
 
-1.  Clone the repository: 
+1.  Clone the repository:
 
     ```bash
     git clone https://github.com/Luna-Salamanca/Converter-MP4-GIF.git

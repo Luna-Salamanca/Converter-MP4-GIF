@@ -4,18 +4,18 @@ This is a web application for converting MP4 videos to GIFs. It's a full-stack T
 
 **Frontend:**
 
-*   **Framework:** React
-*   **Build Tool:** Vite
-*   **Routing:** Wouter
-*   **Styling:** Tailwind CSS
-*   **UI Components:** Shadcn/ui
-*   **Data Fetching:** TanStack Query
+- **Framework:** React
+- **Build Tool:** Vite
+- **Routing:** Wouter
+- **Styling:** Tailwind CSS
+- **UI Components:** Shadcn/ui
+- **Data Fetching:** TanStack Query
 
 **Backend:**
 
-*   **Framework:** Express
-*   **Database:** PostgreSQL
-*   **ORM:** Drizzle ORM
+- **Framework:** Express
+- **Database:** PostgreSQL
+- **ORM:** Drizzle ORM
 
 # Building and Running
 

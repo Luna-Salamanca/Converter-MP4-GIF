@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,18 +7,19 @@
     <script>
       // Redirect 404s to index.html for SPA routing
       // This allows GitHub Pages to work with client-side routing
-      const pathSegments = window.location.pathname.split('/').filter(Boolean);
-      
+      const pathSegments = window.location.pathname.split('/').filter(Boolean)
+
       // Remove the repo name from the path
-      const repoName = 'Converter-MP4-GIF';
+      const repoName = 'Converter-MP4-GIF'
       if (pathSegments[0] === repoName) {
-        pathSegments.shift();
+        pathSegments.shift()
       }
-      
+
       // If there's a path segment, redirect to index.html with the path
       if (pathSegments.length > 0) {
-        const redirectPath = '/' + repoName + '/?path=/' + pathSegments.join('/');
-        window.location.replace(redirectPath);
+        const redirectPath =
+          '/' + repoName + '/?path=/' + pathSegments.join('/')
+        window.location.replace(redirectPath)
       }
     </script>
   </head>
