@@ -88,9 +88,9 @@ export function SettingsPanel({
     // Heuristic for GIF size estimation
     // Invert the quality scale for compressionFactor:
     // gif.js quality: 1 (best) -> 30 (worst/fastest)
-    // est. size compressionFactor: 0.8 (largest size) -> 0.2 (smallest size)
-    // A simple linear mapping: (30 - effectiveQuality) / 29 * (0.8 - 0.2) + 0.2
-    const compressionFactor = ((30 - effectiveQuality) / 29) * 0.6 + 0.2;
+    // est. size compressionFactor: 2.0 (largest size) -> 0.5 (smallest size)
+    // A simple linear mapping: (30 - effectiveQuality) / 29 * (2.0 - 0.5) + 0.5
+    const compressionFactor = ((30 - effectiveQuality) / 29) * 1.5 + 0.5;
 
     const bytes = numFrames * pixelCount * compressionFactor;
     const mb = bytes / (1024 * 1024);
