@@ -29,8 +29,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Get last commit date
+        id: get_last_commit_date
+        run: echo "LAST_COMMIT_DATE=$(git log -1 --format=%cI)" >> "$GITHUB_OUTPUT"
+
       - name: Build
         run: npm run build
+        env:
+          VITE_LAST_UPDATED_DATE: ${{ steps.get_last_commit_date.outputs.LAST_COMMIT_DATE }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
