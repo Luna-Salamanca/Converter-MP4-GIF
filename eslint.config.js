@@ -3,7 +3,7 @@ import eslintPluginReact from 'eslint-plugin-react';
 
 export default tseslint.config(
   {
-    ignores: ["dist/**"],
+    ignores: ["dist/**", "client/public/**"],
     files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -18,6 +18,13 @@ export default tseslint.config(
     },
     rules: {
       ...eslintPluginReact.configs.recommended.rules,
+      ...eslintPluginReact.configs['jsx-runtime'].rules,
+      'react/prop-types': 'off',
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
     },
   },
 );
