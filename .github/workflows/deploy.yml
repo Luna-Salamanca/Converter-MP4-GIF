@@ -25,9 +25,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
+
+      - name: Check Types
+        run: npm run check
+
+      - name: Lint Code
+        run: npm run lint
 
       - name: Get last commit date
         id: get_last_commit_date
