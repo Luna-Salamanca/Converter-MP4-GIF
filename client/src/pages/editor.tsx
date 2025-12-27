@@ -1,4 +1,3 @@
-import { Layout } from '@/components/layout'
 import { VideoTimeline } from '@/components/video-timeline'
 import { SettingsPanel } from '@/components/settings-panel'
 import { PreviewPlayer } from '@/components/preview-player'
@@ -11,33 +10,46 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { getVideo } from '@/lib/video-state'
+import { EditorProvider, useEditor } from '@/context/editor-context'
 import { useState } from 'react'
 
 export default function Editor() {
+  return (
+    <EditorProvider>
+      <EditorContent />
+    </EditorProvider>
+  )
+}
+
+function EditorContent() {
   const { file } = getVideo()
   const filename = file?.name || 'demo_clip.mp4'
 
-  const [duration, setDuration] = useState(60)
-  const [trimRange, setTrimRange] = useState([0, 60])
+  const {
+    trimRange, setTrimRange,
+    crop, setCrop,
+    setVideoDimensions,
+    triggerExport,
+    isExporting
+  } = useEditor()
+  
+  // Local UI state for playback specific to this view
   const [isPlaying, setIsPlaying] = useState(true)
   const [currentTime, setCurrentTime] = useState(0)
-  const [crop, setCrop] = useState({ x: 0, y: 0, width: 100, height: 100 })
-  const [videoDimensions, setVideoDimensions] = useState({
-    width: 1920,
-    height: 1080,
-  })
+  
+  // Duration is local because it's not needed by settings usually, 
+  // though SettingsPanel calculates estimation based on trimRange.
+  // The context relies on trimRange which is initialized based on duration here.
+  const [duration, setDuration] = useState(60)
 
   const handleDurationChange = (newDuration: number) => {
     setDuration(newDuration)
+    // Initialize trim range to full duration on load/change
     setTrimRange([0, newDuration])
   }
-
+  
   const handleDimensionsChange = (width: number, height: number) => {
     setVideoDimensions({ width, height })
-  }
-
-  const handleSeek = (time: number) => {
-    setCurrentTime(time)
   }
 
   return (
@@ -67,8 +79,11 @@ export default function Editor() {
         <div className="flex items-center gap-2">
           <Button
             size="sm"
-            className="font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={triggerExport}
+            disabled={isExporting}
+            className="font-medium bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
           >
+            <Download className="size-4" />
             Export GIF
           </Button>
         </div>
@@ -108,7 +123,7 @@ export default function Editor() {
                   isPlaying={isPlaying}
                   onPlayPause={setIsPlaying}
                   currentTime={currentTime}
-                  onSeek={handleSeek}
+                  onSeek={setCurrentTime}
                 />
               </div>
             </div>
@@ -123,11 +138,7 @@ export default function Editor() {
             maxSize={40}
             className="min-w-[300px]"
           >
-            <SettingsPanel
-              trimRange={trimRange}
-              crop={crop}
-              videoDimensions={videoDimensions}
-            />
+            <SettingsPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

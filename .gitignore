@@ -105,7 +105,6 @@ temp/
 # Build files
 dist/
 build/
-lib/
 es/
 umd/
 
