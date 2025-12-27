@@ -131,7 +131,7 @@ export function CropOverlay({
   if (!visible) return null
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-20">
+    <div className="pointer-events-none absolute inset-0 z-20">
       {/* Dimmed Background */}
       <div className="absolute inset-0 bg-black/50">
         {/* Cutout */}
@@ -148,7 +148,7 @@ export function CropOverlay({
 
       {/* Crop Box */}
       <div
-        className="absolute border-2 border-primary pointer-events-auto cursor-move"
+        className="border-primary pointer-events-auto absolute cursor-move border-2"
         style={{
           left: `${value.x}%`,
           top: `${value.y}%`,
@@ -158,32 +158,32 @@ export function CropOverlay({
         onMouseDown={(e) => handleMouseDown(e, 'move')}
       >
         {/* Grid Lines */}
-        <div className="absolute inset-0 flex flex-col pointer-events-none opacity-30">
-          <div className="flex-1 border-b border-primary/50" />
-          <div className="flex-1 border-b border-primary/50" />
+        <div className="pointer-events-none absolute inset-0 flex flex-col opacity-30">
+          <div className="border-primary/50 flex-1 border-b" />
+          <div className="border-primary/50 flex-1 border-b" />
           <div className="flex-1" />
         </div>
-        <div className="absolute inset-0 flex pointer-events-none opacity-30">
-          <div className="flex-1 border-r border-primary/50" />
-          <div className="flex-1 border-r border-primary/50" />
+        <div className="pointer-events-none absolute inset-0 flex opacity-30">
+          <div className="border-primary/50 flex-1 border-r" />
+          <div className="border-primary/50 flex-1 border-r" />
           <div className="flex-1" />
         </div>
 
         {/* Handles */}
         <div
-          className="absolute -top-1.5 -left-1.5 size-3 bg-primary cursor-nw-resize border border-white"
+          className="bg-primary absolute -top-1.5 -left-1.5 size-3 cursor-nw-resize border border-white"
           onMouseDown={(e) => handleMouseDown(e, 'nw')}
         />
         <div
-          className="absolute -top-1.5 -right-1.5 size-3 bg-primary cursor-ne-resize border border-white"
+          className="bg-primary absolute -top-1.5 -right-1.5 size-3 cursor-ne-resize border border-white"
           onMouseDown={(e) => handleMouseDown(e, 'ne')}
         />
         <div
-          className="absolute -bottom-1.5 -left-1.5 size-3 bg-primary cursor-sw-resize border border-white"
+          className="bg-primary absolute -bottom-1.5 -left-1.5 size-3 cursor-sw-resize border border-white"
           onMouseDown={(e) => handleMouseDown(e, 'sw')}
         />
         <div
-          className="absolute -bottom-1.5 -right-1.5 size-3 bg-primary cursor-se-resize border border-white"
+          className="bg-primary absolute -right-1.5 -bottom-1.5 size-3 cursor-se-resize border border-white"
           onMouseDown={(e) => handleMouseDown(e, 'se')}
         />
       </div>

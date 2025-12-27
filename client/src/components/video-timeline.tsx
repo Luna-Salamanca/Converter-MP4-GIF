@@ -78,7 +78,7 @@ const TimeInput = ({
     return (
       <input
         className={cn(
-          'bg-transparent border-b border-primary text-primary font-medium w-[70px] outline-none text-center p-0 h-auto leading-none',
+          'border-primary text-primary h-auto w-[70px] border-b bg-transparent p-0 text-center leading-none font-medium outline-none',
           className
         )}
         value={inputValue}
@@ -93,7 +93,7 @@ const TimeInput = ({
   return (
     <span
       className={cn(
-        'text-primary font-medium cursor-text hover:bg-white/10 px-1 rounded transition-colors',
+        'text-primary cursor-text rounded px-1 font-medium transition-colors hover:bg-white/10',
         className
       )}
       onClick={() => setIsEditing(true)}
@@ -260,7 +260,7 @@ export function VideoTimeline({
       ticks.push(
         <div
           key={i}
-          className="absolute top-0 bottom-0 pointer-events-none flex flex-col items-center"
+          className="pointer-events-none absolute top-0 bottom-0 flex flex-col items-center"
           style={{ left: `${left}%` }}
         >
           {/* Tick Mark */}
@@ -268,7 +268,7 @@ export function VideoTimeline({
 
           {/* Time Label */}
           {isMajor && (
-            <span className="text-[10px] text-muted-foreground font-mono mt-1 -translate-x-1/2 select-none">
+            <span className="text-muted-foreground mt-1 -translate-x-1/2 font-mono text-[10px] select-none">
               {formatTime(i).split('.')[0]}
             </span>
           )}
@@ -284,30 +284,30 @@ export function VideoTimeline({
   }
 
   return (
-    <div className="space-y-4 bg-card/50 border border-border/50 rounded-xl p-4 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-card/50 border-border/50 space-y-4 rounded-xl border p-4 backdrop-blur-sm">
+      <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
             onClick={handlePlayPause}
-            className="size-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20 flex size-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
           >
             {playing ? (
               <Pause className="size-5 fill-current" />
             ) : (
-              <Play className="size-5 fill-current ml-0.5" />
+              <Play className="ml-0.5 size-5 fill-current" />
             )}
           </button>
           <div className="flex gap-1">
             <button
               onClick={() => handleStep(-1)}
-              className="p-2 hover:bg-white/10 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground rounded-md p-2 transition-colors hover:bg-white/10"
               title="Back 1s"
             >
               <ChevronLeft className="size-4" />
             </button>
             <button
               onClick={() => handleStep(1)}
-              className="p-2 hover:bg-white/10 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground rounded-md p-2 transition-colors hover:bg-white/10"
               title="Forward 1s"
             >
               <ChevronRight className="size-4" />
@@ -315,8 +315,8 @@ export function VideoTimeline({
           </div>
         </div>
 
-        <div className="font-mono text-sm bg-black/40 px-3 py-1.5 rounded-md border border-white/10 shadow-inner flex items-center gap-2 tabular-nums">
-          <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
+        <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/40 px-3 py-1.5 font-mono text-sm tabular-nums shadow-inner">
+          <span className="text-muted-foreground text-[10px] tracking-wider uppercase">
             Timecode
           </span>
 
@@ -336,44 +336,44 @@ export function VideoTimeline({
       {/* Timeline Visualization */}
       <div
         ref={progressBarRef}
-        className="relative h-28 group select-none"
+        className="group relative h-28 select-none"
         onMouseDown={handleTimelineMouseDown}
       >
         {/* Background Container - Dark Track */}
-        <div className="absolute inset-0 bg-[#0A0A0A] rounded-lg overflow-hidden border border-white/5 shadow-inner">
+        <div className="absolute inset-0 overflow-hidden rounded-lg border border-white/5 bg-[#0A0A0A] shadow-inner">
           {/* Ruler Area */}
-          <div className="absolute top-0 left-0 right-0 h-8 border-b border-white/5 bg-white/[0.02] z-10 overflow-hidden">
+          <div className="absolute top-0 right-0 left-0 z-10 h-8 overflow-hidden border-b border-white/5 bg-white/[0.02]">
             <RulerTicks />
           </div>
 
           {/* Video Track / Frames Strip */}
-          <div className="absolute inset-0 top-8 bottom-0 flex pointer-events-none bg-neutral-900/50">
+          <div className="pointer-events-none absolute inset-0 top-8 bottom-0 flex bg-neutral-900/50">
             {/* We can use a repeating gradient to simulate frames if we don't have real thumbnails */}
             <div
-              className="w-full h-full opacity-20"
+              className="h-full w-full opacity-20"
               style={{
                 backgroundImage:
                   'repeating-linear-gradient(90deg, transparent 0, transparent 1px, rgba(255,255,255,0.05) 1px, rgba(255,255,255,0.05) 100px)',
               }}
             />
-            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 w-full bg-blue-500/10 border-y border-blue-500/20" />
+            <div className="absolute inset-x-0 top-1/2 h-8 w-full -translate-y-1/2 border-y border-blue-500/20 bg-blue-500/10" />
           </div>
 
           {/* Trim Overlay - Left (Darkened Area) */}
           <div
-            className="absolute top-8 bottom-0 left-0 bg-black/80 z-20 backdrop-blur-[1px] pointer-events-none border-r border-yellow-500/50"
+            className="pointer-events-none absolute top-8 bottom-0 left-0 z-20 border-r border-yellow-500/50 bg-black/80 backdrop-blur-[1px]"
             style={{ width: `${(trimRange[0] / duration) * 100}%` }}
           />
 
           {/* Trim Overlay - Right (Darkened Area) */}
           <div
-            className="absolute top-8 bottom-0 right-0 bg-black/80 z-20 backdrop-blur-[1px] pointer-events-none border-l border-yellow-500/50"
+            className="pointer-events-none absolute top-8 right-0 bottom-0 z-20 border-l border-yellow-500/50 bg-black/80 backdrop-blur-[1px]"
             style={{ width: `${100 - (trimRange[1] / duration) * 100}%` }}
           />
 
           {/* Active Area Selection Highlight */}
           <div
-            className="absolute top-8 bottom-0 bg-primary/5 z-10 pointer-events-none"
+            className="bg-primary/5 pointer-events-none absolute top-8 bottom-0 z-10"
             style={{
               left: `${(trimRange[0] / duration) * 100}%`,
               width: `${((trimRange[1] - trimRange[0]) / duration) * 100}%`,
@@ -383,30 +383,30 @@ export function VideoTimeline({
 
         {/* Scrubber Playhead - Smooth Red Line */}
         <div
-          className="absolute top-0 bottom-0 w-px bg-red-500 z-40 pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+          className="pointer-events-none absolute top-0 bottom-0 z-40 w-px bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
           style={{ left: `${(smoothTime / duration) * 100}%` }}
         >
           {/* Playhead Handle Top */}
-          <div className="absolute -top-1 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-red-500 drop-shadow-sm" />
+          <div className="absolute -top-1 h-0 w-0 -translate-x-1/2 border-t-[8px] border-r-[6px] border-l-[6px] border-t-red-500 border-r-transparent border-l-transparent drop-shadow-sm" />
 
           {/* Line Glow */}
           <div className="absolute inset-y-0 -left-px w-[3px] bg-red-500/20 blur-[1px]" />
         </div>
 
         {/* Trim Handles */}
-        <div className="absolute inset-0 top-8 z-30 pointer-events-none">
+        <div className="pointer-events-none absolute inset-0 top-8 z-30">
           {/* Left Handle */}
           <div
-            className="absolute top-0 bottom-0 w-4 -ml-2 cursor-ew-resize flex items-center justify-center group/handle pointer-events-auto hover:z-50"
+            className="group/handle pointer-events-auto absolute top-0 bottom-0 -ml-2 flex w-4 cursor-ew-resize items-center justify-center hover:z-50"
             style={{ left: `${(trimRange[0] / duration) * 100}%` }}
             onMouseDown={(e) => {
               e.stopPropagation()
               setIsDragging('left')
             }}
           >
-            <div className="h-full w-1.5 bg-yellow-500 rounded-l-sm shadow-lg relative group-hover/handle:w-2 transition-all">
-              <div className="absolute top-1/2 -translate-y-1/2 -left-1 opacity-0 group-hover/handle:opacity-100 transition-opacity">
-                <div className="text-[9px] font-mono bg-black text-white px-1 rounded mb-1 whitespace-nowrap">
+            <div className="relative h-full w-1.5 rounded-l-sm bg-yellow-500 shadow-lg transition-all group-hover/handle:w-2">
+              <div className="absolute top-1/2 -left-1 -translate-y-1/2 opacity-0 transition-opacity group-hover/handle:opacity-100">
+                <div className="mb-1 rounded bg-black px-1 font-mono text-[9px] whitespace-nowrap text-white">
                   {formatTime(trimRange[0])}
                 </div>
               </div>
@@ -415,16 +415,16 @@ export function VideoTimeline({
 
           {/* Right Handle */}
           <div
-            className="absolute top-0 bottom-0 w-4 -ml-2 cursor-ew-resize flex items-center justify-center group/handle pointer-events-auto hover:z-50"
+            className="group/handle pointer-events-auto absolute top-0 bottom-0 -ml-2 flex w-4 cursor-ew-resize items-center justify-center hover:z-50"
             style={{ left: `${(trimRange[1] / duration) * 100}%` }}
             onMouseDown={(e) => {
               e.stopPropagation()
               setIsDragging('right')
             }}
           >
-            <div className="h-full w-1.5 bg-yellow-500 rounded-r-sm shadow-lg relative group-hover/handle:w-2 transition-all">
-              <div className="absolute top-1/2 -translate-y-1/2 -right-1 opacity-0 group-hover/handle:opacity-100 transition-opacity">
-                <div className="text-[9px] font-mono bg-black text-white px-1 rounded mb-1 whitespace-nowrap">
+            <div className="relative h-full w-1.5 rounded-r-sm bg-yellow-500 shadow-lg transition-all group-hover/handle:w-2">
+              <div className="absolute top-1/2 -right-1 -translate-y-1/2 opacity-0 transition-opacity group-hover/handle:opacity-100">
+                <div className="mb-1 rounded bg-black px-1 font-mono text-[9px] whitespace-nowrap text-white">
                   {formatTime(trimRange[1])}
                 </div>
               </div>
@@ -433,7 +433,7 @@ export function VideoTimeline({
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
           <Scissors className="size-3" />
           <span>

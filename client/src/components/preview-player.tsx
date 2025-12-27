@@ -110,18 +110,18 @@ export function PreviewPlayer({
   }, [trimStart])
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-black/20 rounded-xl overflow-hidden border border-border/50 backdrop-blur-sm group">
+    <div className="border-border/50 group relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl border bg-black/20 backdrop-blur-sm">
       {/* Mock Video Content */}
       <div
         ref={containerRef}
-        className="aspect-video w-full max-w-4xl bg-black relative overflow-hidden rounded-lg shadow-2xl flex items-center justify-center"
+        className="relative flex aspect-video w-full max-w-4xl items-center justify-center overflow-hidden rounded-lg bg-black shadow-2xl"
       >
         {videoUrl ? (
           <>
             <video
               ref={videoRef}
               src={videoUrl}
-              className="w-full h-full object-contain"
+              className="h-full w-full object-contain"
               // controls // Remove native controls to rely on custom ones or sync them properly
               autoPlay={isPlaying}
               loop
@@ -153,10 +153,10 @@ export function PreviewPlayer({
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Abstract Video Placeholder */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-90" />
-            <div className="absolute inset-0 opacity-30 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-100 contrast-150" />
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 brightness-100 contrast-150" />
 
             <motion.div
-              className="relative z-10 size-32 rounded-full bg-primary/20 blur-3xl"
+              className="bg-primary/20 relative z-10 size-32 rounded-full blur-3xl"
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.6, 0.3],
@@ -164,7 +164,7 @@ export function PreviewPlayer({
               transition={{ duration: 4, repeat: Infinity }}
             />
             <motion.div
-              className="relative z-10 size-48 rounded-full bg-secondary/10 blur-3xl -ml-12"
+              className="bg-secondary/10 relative z-10 -ml-12 size-48 rounded-full blur-3xl"
               animate={{
                 scale: [1.2, 1, 1.2],
                 opacity: [0.2, 0.5, 0.2],
@@ -175,8 +175,8 @@ export function PreviewPlayer({
         )}
 
         {/* Overlay Info */}
-        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
-          <div className="bg-black/50 backdrop-blur text-xs px-2 py-1 rounded text-white border border-white/10 flex items-center">
+        <div className="absolute top-4 right-4 z-30 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="flex items-center rounded border border-white/10 bg-black/50 px-2 py-1 text-xs text-white backdrop-blur">
             Original:{' '}
             {videoDimensions.width > 0
               ? `${videoDimensions.width}x${videoDimensions.height}`
@@ -186,7 +186,7 @@ export function PreviewPlayer({
             size="icon"
             variant="ghost"
             className={cn(
-              'h-8 w-8 bg-black/50 backdrop-blur hover:bg-white/20 text-white transition-colors',
+              'h-8 w-8 bg-black/50 text-white backdrop-blur transition-colors hover:bg-white/20',
               isCropping &&
                 'bg-primary text-primary-foreground hover:bg-primary/90'
             )}
@@ -195,7 +195,7 @@ export function PreviewPlayer({
           >
             <Crop className="size-4" />
           </Button>
-          <button className="p-1.5 bg-black/50 backdrop-blur rounded hover:bg-white/20 text-white transition-colors pointer-events-auto">
+          <button className="pointer-events-auto rounded bg-black/50 p-1.5 text-white backdrop-blur transition-colors hover:bg-white/20">
             <Maximize2 className="size-4" />
           </button>
         </div>

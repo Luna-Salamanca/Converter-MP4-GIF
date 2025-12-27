@@ -48,15 +48,15 @@ export function Dropzone() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="mx-auto w-full max-w-2xl">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className={cn(
-          'relative group border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer overflow-hidden',
+          'group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-300',
           isDragging
-            ? 'border-primary bg-primary/5 scale-[1.02] shadow-2xl shadow-primary/10'
+            ? 'border-primary bg-primary/5 shadow-primary/10 scale-[1.02] shadow-2xl'
             : 'border-border hover:border-primary/50 hover:bg-muted/30'
         )}
         onDragOver={onDragOver}
@@ -72,12 +72,12 @@ export function Dropzone() {
           onChange={handleFileInput}
         />
 
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+        <div className="from-primary/5 to-secondary/5 pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100" />
 
         <div className="relative z-10 flex flex-col items-center gap-6">
           <div
             className={cn(
-              'size-20 rounded-full flex items-center justify-center transition-all duration-300',
+              'flex size-20 items-center justify-center rounded-full transition-all duration-300',
               isDragging
                 ? 'bg-primary text-background scale-110'
                 : 'bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary'
@@ -91,19 +91,19 @@ export function Dropzone() {
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-2xl font-display font-bold">
+            <h3 className="font-display text-2xl font-bold">
               {isDragging ? 'Drop video to start' : 'Upload a video'}
             </h3>
-            <p className="text-muted-foreground max-w-sm mx-auto">
+            <p className="text-muted-foreground mx-auto max-w-sm">
               Drag and drop or click to browse. Supports MP4, WebM, MOV up to
               500MB.
             </p>
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-4">
-            <span className="bg-muted px-2 py-1 rounded">H.264</span>
-            <span className="bg-muted px-2 py-1 rounded">VP9</span>
-            <span className="bg-muted px-2 py-1 rounded">ProRes</span>
+          <div className="text-muted-foreground mt-4 flex items-center gap-4 text-xs">
+            <span className="bg-muted rounded px-2 py-1">H.264</span>
+            <span className="bg-muted rounded px-2 py-1">VP9</span>
+            <span className="bg-muted rounded px-2 py-1">ProRes</span>
           </div>
         </div>
       </motion.div>
@@ -114,7 +114,7 @@ export function Dropzone() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg flex items-center gap-2 text-sm font-medium"
+            className="bg-destructive/10 text-destructive mt-4 flex items-center gap-2 rounded-lg p-4 text-sm font-medium"
           >
             <AlertCircle className="size-4" />
             {error}

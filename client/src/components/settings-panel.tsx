@@ -24,33 +24,38 @@ import { useEditor } from '@/context/editor-context'
 
 export function SettingsPanel() {
   const {
-    fps, setFps,
-    compression, setCompression,
-    width, setWidth,
-    filename, setFilename,
-    fastMode, setFastMode,
+    fps,
+    setFps,
+    compression,
+    setCompression,
+    width,
+    setWidth,
+    filename,
+    setFilename,
+    fastMode,
+    setFastMode,
     videoDimensions,
     crop,
     estSize,
     triggerExport,
     isExporting,
-    progress
+    progress,
   } = useEditor()
 
   return (
-    <div className="h-full flex flex-col bg-card border-l border-border">
-      <div className="p-4 border-b border-border">
-        <h2 className="font-display font-bold text-lg flex items-center gap-2">
-          <Sliders className="size-4 text-primary" />
+    <div className="bg-card border-border flex h-full flex-col border-l">
+      <div className="border-border border-b p-4">
+        <h2 className="font-display flex items-center gap-2 text-lg font-bold">
+          <Sliders className="text-primary size-4" />
           Export Settings
         </h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-8">
+      <div className="flex-1 space-y-8 overflow-y-auto p-4">
         {/* Filename Input */}
         <div className="space-y-4">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <FilePenLine className="size-4 text-muted-foreground" />
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <FilePenLine className="text-muted-foreground size-4" />
             Filename
           </label>
           <div className="flex items-center gap-2">
@@ -58,9 +63,9 @@ export function SettingsPanel() {
               value={filename}
               onChange={(e) => setFilename(e.target.value)}
               placeholder="Enter filename"
-              className="font-mono text-sm bg-background"
+              className="bg-background font-mono text-sm"
             />
-            <span className="text-sm text-muted-foreground font-mono">
+            <span className="text-muted-foreground font-mono text-sm">
               .gif
             </span>
           </div>
@@ -71,14 +76,16 @@ export function SettingsPanel() {
         {/* FPS Control */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <ZapIcon className="size-4 text-muted-foreground" />
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <ZapIcon className="text-muted-foreground size-4" />
               Frame Rate
             </label>
-            <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-1 rounded">
+            <span className="bg-primary/10 text-primary rounded px-2 py-1 font-mono text-xs">
               {fastMode && fps > 15 ? (
                 <>
-                  <span className="line-through opacity-50 mr-2">{fps} FPS</span>
+                  <span className="mr-2 line-through opacity-50">
+                    {fps} FPS
+                  </span>
                   <span>15 FPS (Draft)</span>
                 </>
               ) : (
@@ -102,34 +109,35 @@ export function SettingsPanel() {
         {/* Resolution */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <Monitor className="size-4 text-muted-foreground" />
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <Monitor className="text-muted-foreground size-4" />
               Dimensions
             </label>
-            <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-1 rounded">
+            <span className="bg-primary/10 text-primary rounded px-2 py-1 font-mono text-xs">
               {(() => {
-                const originalWidth = videoDimensions.width;
-                const originalHeight = videoDimensions.height; // Unused but kept for clarity/expansion
-                const cropW = Math.floor((crop.width / 100) * originalWidth);
-                const cropH = Math.floor((crop.height / 100) * videoDimensions.height);
+                const originalWidth = videoDimensions.width
+                const originalHeight = videoDimensions.height // Unused but kept for clarity/expansion
+                const cropW = Math.floor((crop.width / 100) * originalWidth)
+                const cropH = Math.floor(
+                  (crop.height / 100) * videoDimensions.height
+                )
 
-                let currentGifWidth = cropW;
-                let currentGifHeight = cropH;
+                let currentGifWidth = cropW
+                let currentGifHeight = cropH
 
                 if (width !== 'original') {
-                  const targetWidth = parseInt(width);
-                  const ratio = cropH / cropW;
-                  currentGifWidth = targetWidth;
-                  currentGifHeight = Math.round(targetWidth * ratio);
+                  const targetWidth = parseInt(width)
+                  const ratio = cropH / cropW
+                  currentGifWidth = targetWidth
+                  currentGifHeight = Math.round(targetWidth * ratio)
                 }
-                return width === 'original' ? `${videoDimensions.width}x${videoDimensions.height} (Original)` : `${currentGifWidth}x${currentGifHeight}`;
+                return width === 'original'
+                  ? `${videoDimensions.width}x${videoDimensions.height} (Original)`
+                  : `${currentGifWidth}x${currentGifHeight}`
               })()}
             </span>
           </div>
-          <Select
-            value={width}
-            onValueChange={setWidth}
-          >
+          <Select value={width} onValueChange={setWidth}>
             <SelectTrigger>
               <SelectValue placeholder="Select size" />
             </SelectTrigger>
@@ -149,11 +157,11 @@ export function SettingsPanel() {
         {/* Compression / Optimization */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center gap-2">
-              <FileVideo className="size-4 text-muted-foreground" />
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <FileVideo className="text-muted-foreground size-4" />
               Compression
             </label>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {compression < 30
                 ? 'High Quality'
                 : compression < 70
@@ -171,7 +179,7 @@ export function SettingsPanel() {
             className={fastMode ? 'opacity-50' : 'py-2'}
           />
 
-          <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-wider">
+          <div className="text-muted-foreground flex justify-between text-[10px] tracking-wider uppercase">
             <span>Best Quality</span>
             <span>Small Size</span>
           </div>
@@ -183,11 +191,12 @@ export function SettingsPanel() {
         <div className="flex items-center justify-between space-x-2">
           <div className="space-y-1">
             <Label htmlFor="fast-mode" className="flex items-center gap-2">
-              <Gauge className="size-4 text-muted-foreground" />
+              <Gauge className="text-muted-foreground size-4" />
               Draft Mode (Fast)
             </Label>
-            <p className="text-[10px] text-muted-foreground max-w-[200px]">
-              Reduces color sampling and caps FPS at 15 for faster export. Great for testing.
+            <p className="text-muted-foreground max-w-[200px] text-[10px]">
+              Reduces color sampling and caps FPS at 15 for faster export. Great
+              for testing.
             </p>
           </div>
           <Switch
@@ -199,10 +208,10 @@ export function SettingsPanel() {
       </div>
 
       {/* Action Bar */}
-      <div className="p-4 bg-muted/10 border-t border-border space-y-3">
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+      <div className="bg-muted/10 border-border space-y-3 border-t p-4">
+        <div className="text-muted-foreground mb-2 flex items-center justify-between text-xs">
           <span>Est. Size:</span>
-          <span className="font-mono font-bold text-foreground">{estSize}</span>
+          <span className="text-foreground font-mono font-bold">{estSize}</span>
         </div>
         <Button
           className="w-full gap-2 font-bold"
@@ -212,7 +221,7 @@ export function SettingsPanel() {
         >
           {isExporting ? (
             <>
-              <div className="size-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+              <div className="border-background/30 border-t-background size-4 animate-spin rounded-full border-2" />
               {progress === 100
                 ? 'Finalizing...'
                 : progress > 0
@@ -253,4 +262,3 @@ function ZapIcon(props: any) {
     </svg>
   )
 }
-

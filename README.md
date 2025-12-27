@@ -28,15 +28,15 @@ To run the application in development mode, you need to have Node.js and npm ins
 
 This project has received several key enhancements for improved functionality and user experience:
 
-*   **Enhanced GIF Generation Reliability:** Fixed an issue where the GIF Web Worker failed to load, ensuring stable and consistent GIF creation.
-*   **More Accurate Size Estimation:** Implemented significant improvements to the estimated GIF file size calculation, providing more precise predictions, especially for higher quality outputs and when adjusting dimensions.
-*   **Updated Branding & UI Clarity:** The application branding has been updated to "Cassi-Fi." Additionally, dimension labels in the export settings have been clarified for better user understanding.
+- **Enhanced GIF Generation Reliability:** Fixed an issue where the GIF Web Worker failed to load, ensuring stable and consistent GIF creation.
+- **More Accurate Size Estimation:** Implemented significant improvements to the estimated GIF file size calculation, providing more precise predictions, especially for higher quality outputs and when adjusting dimensions.
+- **Updated Branding & UI Clarity:** The application branding has been updated to "Cassi-Fi." Additionally, dimension labels in the export settings have been clarified for better user understanding.
 
 For a detailed development log and a comprehensive list of all changes, please refer to the `GEMINI.md` file.
 
 ## Deployment to GitHub Pages
 
-This application can be deployed to GitHub Pages. 
+This application can be deployed to GitHub Pages.
 
 ### Manual Deployment
 
