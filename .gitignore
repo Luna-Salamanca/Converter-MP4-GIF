@@ -69,8 +69,6 @@ cypress/screenshots/
 tsconfig.*.json
 
 # Package managers
-package-lock.json
-yarn.lock
 pnpm-lock.yaml
 shrinkwrap.yaml
 
