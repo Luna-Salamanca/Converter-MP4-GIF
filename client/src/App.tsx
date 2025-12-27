@@ -24,7 +24,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <WouterRouter base="/Converter-MP4-GIF/">
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <Router />
         </WouterRouter>
       </TooltipProvider>

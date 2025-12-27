@@ -9,7 +9,10 @@
     "build": "tsx scripts/build.ts",
     "check": "tsc",
     "lint": "eslint .",
-    "sync-images": "node scripts/sync-images.js"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "sync-images": "node scripts/sync-images.js",
+    "prepare": "husky"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -72,6 +75,11 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1",
@@ -79,5 +87,12 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint",
+      "prettier --write"
+    ],
+    "*": "prettier --write --ignore-unknown"
   }
 }

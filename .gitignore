@@ -30,7 +30,7 @@ out/
 .vuepress/dist
 
 # IDE and Editor
-.vscode/
+
 .idea/
 *.swp
 *.swo
@@ -98,7 +98,7 @@ temp/
 .cache/
 .eslintcache
 .prettier-cache
-.husky/
+
 
 # Build files
 dist/
@@ -126,7 +126,7 @@ auto-generated/
 .DS_Store
 *.pem
 .vscode-test
-.vscode
+
 
 # Local database instances
 data/
