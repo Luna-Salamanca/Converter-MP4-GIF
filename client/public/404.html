@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Converter MP4 to GIF</title>
+    <script>
+      // Redirect 404s to index.html for SPA routing
+      // This allows GitHub Pages to work with client-side routing
+      const pathSegments = window.location.pathname.split('/').filter(Boolean)
+
+      // Remove the repo name from the path
+      const repoName = 'Converter-MP4-GIF'
+      if (pathSegments[0] === repoName) {
+        pathSegments.shift()
+      }
+
+      // If there's a path segment, redirect to index.html with the path
+      if (pathSegments.length > 0) {
+        const redirectPath =
+          '/' + repoName + '/?path=/' + pathSegments.join('/')
+        window.location.replace(redirectPath)
+      }
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
