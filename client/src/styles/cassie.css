@@ -1,0 +1,830 @@
+/* Cassie Page Styles - OPTIMIZED FOR PERFORMANCE */
+.cassie-page {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  background: linear-gradient(135deg, var(--cream) 0%, #fff0e6 100%);
+  color: var(--text-dark);
+  line-height: 1.8;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+.cassie-page * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.cassie-page :root,
+.cassie-page {
+  --cream: #fff8f0;
+  --soft-pink: #ffd6d6;
+  --blush: #ffb6b9;
+  --deep-red: #8b3a3a;
+  --wine: #6b2d2d;
+  --gold: #d4af37;
+  --warm-gray: #b8a99a;
+  --text-dark: #3a3a3a;
+}
+
+/* Hero Section */
+.cassie-page .hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 214, 214, 0.3) 0%,
+    transparent 70%
+  );
+}
+
+.cassie-page .hero::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--soft-pink) 0%, transparent 70%);
+  opacity: 0.4;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: pulse 4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.1);
+    opacity: 0.6;
+  }
+}
+
+.cassie-page .hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.cassie-page .hero h1 {
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  color: var(--deep-red);
+  text-shadow: 2px 2px 20px rgba(255, 182, 185, 0.5);
+  animation: fadeInUp 1s ease-out;
+}
+
+.cassie-page .hero .subtitle {
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--wine);
+  font-style: italic;
+  margin-bottom: 2rem;
+  animation: fadeInUp 1s ease-out 0.3s backwards;
+}
+
+.cassie-page .hero .date {
+  font-size: 1.1rem;
+  color: var(--warm-gray);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  animation: fadeInUp 1s ease-out 0.6s backwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Section Styling */
+.cassie-page section {
+  padding: 5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.cassie-page h2 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  text-align: center;
+  margin-bottom: 3rem;
+  color: var(--deep-red);
+  font-weight: 300;
+  position: relative;
+}
+
+.cassie-page h2::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  margin: 1rem auto;
+}
+
+/* Promise Section */
+.cassie-page .promise {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 214, 214, 0.2) 0%,
+    rgba(255, 240, 230, 0.3) 100%
+  );
+  border-radius: 20px;
+  padding: 4rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(139, 58, 58, 0.1);
+}
+
+.cassie-page .promise::before {
+  content: '"';
+  position: absolute;
+  top: -20px;
+  left: 20px;
+  font-size: 150px;
+  color: var(--blush);
+  opacity: 0.3;
+  font-family: Georgia, serif;
+}
+
+.cassie-page .promise-text {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  color: var(--wine);
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cassie-page .promise-subtext {
+  font-size: 1.2rem;
+  color: var(--warm-gray);
+  font-style: italic;
+}
+
+/* Memory Grid */
+.cassie-page .memory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.cassie-page .memory-card {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  box-shadow: 0 5px 20px rgba(139, 58, 58, 0.08);
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease;
+  border: 1px solid rgba(255, 214, 214, 0.3);
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.cassie-page .memory-card:hover {
+  transform: translateY(-10px) translateZ(0);
+  box-shadow: 0 15px 40px rgba(139, 58, 58, 0.15);
+  border-color: var(--blush);
+}
+
+.cassie-page .memory-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.cassie-page .memory-title {
+  font-size: 1.4rem;
+  color: var(--deep-red);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.cassie-page .memory-description {
+  color: var(--text-dark);
+  line-height: 1.8;
+}
+
+/* Photo Gallery - HEAVILY OPTIMIZED */
+.cassie-page .photo-gallery {
+  background: white;
+  padding: 4rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(139, 58, 58, 0.1);
+}
+
+.cassie-page .photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.cassie-page .photo-placeholder {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, var(--soft-pink) 0%, var(--blush) 100%);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  /* PERFORMANCE BOOST */
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cassie-page .photo-placeholder::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.cassie-page .photo-placeholder:hover {
+  transform: scale(1.05) translateZ(0);
+}
+
+.cassie-page .photo-placeholder:hover::before {
+  opacity: 1;
+}
+
+/* Image optimization */
+.cassie-page .photo-placeholder img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Reasons Section */
+.cassie-page .reasons {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 214, 214, 0.15) 100%
+  );
+  padding: 5rem 2rem;
+}
+
+.cassie-page .reasons-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cassie-page .reason-item {
+  background: white;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  border-radius: 15px;
+  border-left: 4px solid var(--gold);
+  box-shadow: 0 5px 15px rgba(139, 58, 58, 0.06);
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.cassie-page .reason-item:hover {
+  transform: translateX(10px) translateZ(0);
+  box-shadow: 0 8px 25px rgba(139, 58, 58, 0.12);
+}
+
+.cassie-page .reason-number {
+  color: var(--gold);
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.cassie-page .reason-text {
+  color: var(--text-dark);
+  font-size: 1.15rem;
+  line-height: 1.8;
+}
+
+/* Love Letter Section */
+.cassie-page .love-letter {
+  background: white;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(139, 58, 58, 0.1);
+  position: relative;
+}
+
+.cassie-page .love-letter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(
+    to right,
+    var(--soft-pink),
+    var(--gold),
+    var(--deep-red)
+  );
+  border-radius: 20px 20px 0 0;
+}
+
+.cassie-page .letter-content {
+  font-size: 1.2rem;
+  line-height: 2;
+  color: var(--text-dark);
+  text-align: left;
+}
+
+.cassie-page .letter-content p {
+  margin-bottom: 1.5rem;
+}
+
+.cassie-page .signature {
+  text-align: right;
+  font-style: italic;
+  color: var(--wine);
+  margin-top: 3rem;
+  font-size: 1.3rem;
+}
+
+/* Countdown Timer */
+.cassie-page .countdown {
+  background: linear-gradient(135deg, var(--wine) 0%, var(--deep-red) 100%);
+  color: white;
+  padding: 4rem 2rem;
+  text-align: center;
+  border-radius: 20px;
+  margin: 3rem 0;
+}
+
+.cassie-page .countdown h2 {
+  color: white;
+}
+
+.cassie-page .countdown h2::after {
+  background: linear-gradient(to right, transparent, white, transparent);
+}
+
+.cassie-page .timer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 2rem;
+  max-width: 600px;
+  margin: 2rem auto 0;
+}
+
+.cassie-page .timer-block {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.cassie-page .timer-number {
+  font-size: 3rem;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.cassie-page .timer-label {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.9;
+}
+
+/* Footer */
+.cassie-page footer {
+  background: linear-gradient(to top, var(--wine) 0%, transparent 100%);
+  color: white;
+  text-align: center;
+  padding: 4rem 2rem;
+  margin-top: 5rem;
+}
+
+.cassie-page .footer-message {
+  font-size: 1.5rem;
+  font-style: italic;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cassie-page .footer-small {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Sparkle Animation */
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.cassie-page .sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: sparkle 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cassie-page section {
+    padding: 3rem 1.5rem;
+  }
+
+  .cassie-page .love-letter {
+    padding: 2rem;
+  }
+
+  .cassie-page .memory-grid,
+  .cassie-page .photo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cassie-page .timer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Scroll animations - OPTIMIZED */
+.cassie-page .fade-in {
+  opacity: 0;
+  transform: translateY(30px) translateZ(0);
+  transition:
+    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+.cassie-page .fade-in.visible {
+  opacity: 1;
+  transform: translateY(0) translateZ(0);
+  will-change: auto;
+}
+
+/* Staggered animations for memory cards */
+.cassie-page .memory-card.fade-in:nth-child(1) {
+  transition-delay: 0.05s;
+}
+
+.cassie-page .memory-card.fade-in:nth-child(2) {
+  transition-delay: 0.1s;
+}
+
+.cassie-page .memory-card.fade-in:nth-child(3) {
+  transition-delay: 0.15s;
+}
+
+.cassie-page .memory-card.fade-in:nth-child(4) {
+  transition-delay: 0.2s;
+}
+
+/* Staggered animations for reason items */
+.cassie-page .reason-item.fade-in:nth-child(1) {
+  transition-delay: 0.05s;
+}
+
+.cassie-page .reason-item.fade-in:nth-child(2) {
+  transition-delay: 0.1s;
+}
+
+.cassie-page .reason-item.fade-in:nth-child(3) {
+  transition-delay: 0.15s;
+}
+
+.cassie-page .reason-item.fade-in:nth-child(4) {
+  transition-delay: 0.2s;
+}
+
+.cassie-page .reason-item.fade-in:nth-child(5) {
+  transition-delay: 0.25s;
+}
+
+.cassie-page .reason-item.fade-in:nth-child(6) {
+  transition-delay: 0.3s;
+}
+
+.cassie-page .reason-item.fade-in:nth-child(7) {
+  transition-delay: 0.35s;
+}
+
+/* Carousel Styles - OPTIMIZED */
+.cassie-page .photo-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Critical for performance */
+  contain: layout style paint;
+}
+
+.cassie-page .carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateZ(0);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--deep-red);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+.cassie-page .photo-placeholder:hover .carousel-btn {
+  opacity: 1;
+}
+
+.cassie-page .carousel-prev {
+  left: 10px;
+}
+
+.cassie-page .carousel-next {
+  right: 10px;
+}
+
+.cassie-page .carousel-btn:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.1) translateZ(0);
+}
+
+.cassie-page .carousel-btn:active {
+  transform: translateY(-50%) scale(0.95) translateZ(0);
+}
+
+/* Lightbox Styles - OPTIMIZED */
+.cassie-page .lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 9999 !important;
+  cursor: zoom-out;
+  animation: fadeIn 0.2s ease;
+  will-change: opacity;
+  backface-visibility: hidden;
+}
+
+.cassie-page .lightbox-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.cassie-page .lightbox-content img {
+  display: block;
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.5);
+  /* CRITICAL: Smooth image rendering */
+  image-rendering: high-quality;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.cassie-page .lightbox-close {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 50px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10000;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@media (max-width: 1024px) {
+  .cassie-page .lightbox-close {
+    top: 10px;
+    right: 10px;
+    font-size: 40px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.cassie-page .lightbox-close:hover {
+  transform: scale(1.2) translateZ(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.95) translateZ(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+/* Performance: Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .cassie-page *,
+  .cassie-page *::before,
+  .cassie-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Voice Memos Section - Optimized */
+.cassie-page .voice-memos {
+  padding: 5rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(139, 58, 58, 0.1);
+  margin: 3rem auto;
+  max-width: 900px;
+}
+
+.cassie-page .voice-memos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.cassie-page .voice-memo-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--cream);
+  border: 1px solid rgba(139, 58, 58, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.cassie-page .voice-memo-card:hover {
+  transform: translateY(-2px) translateZ(0);
+  box-shadow: 0 4px 12px rgba(139, 58, 58, 0.08);
+  border-color: var(--blush);
+  background: white;
+}
+
+.cassie-page .voice-memo-card.playing {
+  background: var(--soft-pink);
+  border-color: var(--deep-red);
+}
+
+.cassie-page .voice-icon {
+  font-size: 1.5rem;
+  width: 44px;
+  height: 44px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(139, 58, 58, 0.1);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: var(--deep-red);
+  border: 2px solid var(--soft-pink);
+}
+
+.cassie-page .voice-memo-card:hover .voice-icon {
+  transform: scale(1.1);
+  background: var(--deep-red);
+  color: white;
+  border-color: var(--deep-red);
+}
+
+.cassie-page .voice-memo-card.playing .voice-icon {
+  background: var(--deep-red);
+  color: white;
+  border-color: var(--deep-red);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+
+.cassie-page .voice-content h3 {
+  font-size: 1rem;
+  color: var(--deep-red);
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+.cassie-page .voice-duration {
+  font-size: 0.85rem;
+  color: var(--warm-gray);
+}
+
+.cassie-page .voice-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--soft-pink), var(--deep-red));
+  opacity: 0.9;
+  pointer-events: none;
+}

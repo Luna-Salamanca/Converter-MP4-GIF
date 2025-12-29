@@ -1,0 +1,120 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+/* DARK MODE DEFAULT */
+:root {
+  /* Neutral Grays & Cyan/Purple Accents */
+  --background: 240 10% 3.9%; /* Almost black */
+  --foreground: 0 0% 98%;
+
+  --card: 240 10% 6%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 240 10% 6%;
+  --popover-foreground: 0 0% 98%;
+
+  /* Sky Blue Primary */
+  --primary: 199 100% 65%;
+  --primary-foreground: 0 0% 0%; /* Dark text on light blue for contrast */
+
+  /* Deep Purple Secondary - Keeping as accent or changing? User only specified primary change "change the purple back" */
+  --secondary: 260 60% 60%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 240 5% 15%;
+  --muted-foreground: 240 5% 65%;
+
+  --accent: 240 5% 15%; /* Hover state */
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 5% 15%;
+  --input: 240 5% 15%;
+  --ring: 199 100% 65%;
+
+  --radius: 0.5rem;
+
+  --chart-1: 199 100% 65%;
+  --chart-2: 260 60% 60%;
+  --chart-3: 330 70% 60%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+}
+
+/* Light mode overrides if needed, but focusing on dark UI for video tool */
+.light {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 199 100% 65%; /* Sky Blue */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 260 60% 90%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 199 100% 65%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tight;
+  }
+}
