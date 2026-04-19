@@ -6,6 +6,7 @@ import {
   formatEstimationRange,
   type EstimationResult,
 } from '@/lib/gif-size-estimator'
+import { sampleFrames, clearSampleCache } from '@/lib/export-frame-sampler'
 
 export interface SizeEstimateSettings {
   fps: number
@@ -20,8 +21,6 @@ export interface SizeEstimateSettings {
 interface SizeEstimateState {
   /** Human-readable range string, e.g. "1.2 MB – 2.4 MB" */
   label: string
-  /** Complexity hint */
-  complexity: EstimationResult['complexity'] | null
   /** Whether the estimator is currently sampling */
   isSampling: boolean
   /** Whether the output is likely very large (> 50 MB mid estimate) */
@@ -41,20 +40,29 @@ export function useSizeEstimate(
 ): SizeEstimateState {
   const [state, setState] = useState<SizeEstimateState>({
     label: 'Calculating…',
-    complexity: null,
     isSampling: false,
     isLargeWarning: false,
   })
 
-  const abortRef = useRef(0) // simple generation counter
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    const { url } = getVideo()
+    if (!url) {
+      clearSampleCache()
+    }
+    return () => {
+      // We don't automatically clear cache on unmount because the export
+      // might still need to run and use the cached frames.
+    }
+  }, [getVideo().url]) // Track URL changes directly
 
   const estimate = useCallback(
-    async (s: SizeEstimateSettings, generation: number) => {
+    async (s: SizeEstimateSettings, signal: AbortSignal) => {
       const { url } = getVideo()
       if (!url) {
         setState({
           label: '—',
-          complexity: null,
           isSampling: false,
           isLargeWarning: false,
         })
@@ -82,88 +90,26 @@ export function useSizeEstimate(
         const totalFrames = Math.max(1, Math.floor(duration * effectiveFps))
         const delay = Math.round(1000 / effectiveFps)
 
-        const maxColors = Math.max(
-          32,
-          Math.round(
-            256 -
-              ((s.fastMode ? 30 : Math.max(1, Math.floor(s.compression / 3))) -
-                1) *
-                (224 / 29)
-          )
-        )
+        const maxColors = s.fastMode ? 128 : 256
 
         /* ---- Sample frames ---- */
-        const samplesToTake = Math.min(s.fastMode ? 3 : 5, totalFrames)
+        const samplesToTake = Math.min(s.fastMode ? 3 : 15, totalFrames)
 
-        const tempVideo = document.createElement('video')
-        const canvas = document.createElement('canvas')
-        canvas.width = gifWidth
-        canvas.height = gifHeight
-        const ctx = canvas.getContext('2d', { willReadFrequently: true })
-        if (!ctx) throw new Error('No canvas context')
+        if (signal.aborted) return
 
-        tempVideo.src = url
-        tempVideo.crossOrigin = 'anonymous'
-        tempVideo.muted = true
-        tempVideo.playsInline = true
-
-        await new Promise<void>((resolve, reject) => {
-          tempVideo.onloadedmetadata = () => resolve()
-          tempVideo.onerror = (e) => reject(e)
+        const samplePixels = await sampleFrames({
+          videoUrl: url,
+          totalFrames,
+          samplesToTake,
+          fps: effectiveFps,
+          trimRange: s.trimRange,
+          crop: cropSafe,
+          width: gifWidth,
+          height: gifHeight,
+          signal,
         })
 
-        // Bail if a newer estimation was requested while we loaded metadata
-        if (abortRef.current !== generation) {
-          tempVideo.removeAttribute('src')
-          tempVideo.load()
-          return
-        }
-
-        // Use the already-clamped crop values
-        const { x: cropX, y: cropY, w: cropW, h: cropH } = cropSafe
-
-        const sampleStep = Math.max(1, Math.floor(totalFrames / samplesToTake))
-        const samplePixels: Uint8ClampedArray[] = []
-
-        for (
-          let i = 0;
-          i < totalFrames && samplePixels.length < samplesToTake;
-          i += sampleStep
-        ) {
-          if (abortRef.current !== generation) break
-
-          const time = s.trimRange[0] + i / effectiveFps
-          tempVideo.currentTime = time
-
-          await new Promise<void>((resolve) => {
-            const onSeeked = () => {
-              tempVideo.removeEventListener('seeked', onSeeked)
-              resolve()
-            }
-            tempVideo.addEventListener('seeked', onSeeked)
-          })
-
-          ctx.drawImage(
-            tempVideo,
-            cropX,
-            cropY,
-            cropW,
-            cropH,
-            0,
-            0,
-            gifWidth,
-            gifHeight
-          )
-          samplePixels.push(ctx.getImageData(0, 0, gifWidth, gifHeight).data)
-        }
-
-        // Cleanup temp video
-        tempVideo.removeAttribute('src')
-        tempVideo.load()
-        canvas.width = 0
-        canvas.height = 0
-
-        if (abortRef.current !== generation) return
+        if (signal.aborted) return
 
         /* ---- Run estimator ---- */
         const result = estimateGifSize(samplePixels, {
@@ -175,20 +121,18 @@ export function useSizeEstimate(
           fastMode: s.fastMode,
         })
 
-        if (abortRef.current !== generation) return
+        if (signal.aborted) return
 
         setState({
           label: formatEstimationRange(result),
-          complexity: result.complexity,
           isSampling: false,
           isLargeWarning: result.midBytes > LARGE_THRESHOLD,
         })
       } catch (err) {
         console.warn('[SizeEstimate] sampling failed, falling back', err)
-        if (abortRef.current !== generation) return
+        if (signal.aborted) return
         setState({
           label: '—',
-          complexity: null,
           isSampling: false,
           isLargeWarning: false,
         })
@@ -198,14 +142,21 @@ export function useSizeEstimate(
   )
 
   useEffect(() => {
-    const gen = ++abortRef.current
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
 
     // Debounce 300ms so rapid setting changes don't thrash
     const timer = setTimeout(() => {
-      estimate(settings, gen)
+      estimate(settings, abortController.signal)
     }, 300)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      abortController.abort()
+    }
     // We deliberately spread all settings fields into the dep array
   }, [
     settings.fps,

@@ -1,56 +1,9 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-  useMemo,
-} from 'react'
+import { useState, ReactNode, useEffect, useMemo } from 'react'
 import { useGifExport, ExportSettings } from '@/hooks/use-gif-export'
 import { useSizeEstimate } from '@/hooks/use-size-estimate'
 import { getVideo } from '@/lib/video-state'
 import { resolveCropRect } from '@/lib/crop-utils'
-import type { EstimationResult } from '@/lib/gif-size-estimator'
-
-interface EditorContextType {
-  // Settings
-  fps: number
-  setFps: (fps: number) => void
-  compression: number
-  setCompression: (c: number) => void
-  width: string
-  setWidth: (w: string) => void
-  filename: string
-  setFilename: (n: string) => void
-  fastMode: boolean
-  setFastMode: (m: boolean) => void
-
-  // Editor State
-  trimRange: number[]
-  setTrimRange: (range: number[]) => void
-  crop: { x: number; y: number; width: number; height: number }
-  setCrop: (crop: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }) => void
-  videoDimensions: { width: number; height: number }
-  setVideoDimensions: (dim: { width: number; height: number }) => void
-
-  // Size estimation
-  estSize: string
-  estComplexity: EstimationResult['complexity'] | null
-  estIsSampling: boolean
-  estIsLargeWarning: boolean
-
-  // Actions
-  triggerExport: () => void
-  isExporting: boolean
-  progress: number
-}
-
-const EditorContext = createContext<EditorContextType | null>(null)
+import { EditorContext } from '@/hooks/use-editor'
 
 export function EditorProvider({ children }: { children: ReactNode }) {
   const [fps, setFps] = useState(60)
@@ -90,7 +43,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
   const {
     label: estSize,
-    complexity: estComplexity,
     isSampling: estIsSampling,
     isLargeWarning: estIsLargeWarning,
   } = useSizeEstimate(estimateSettings)
@@ -144,7 +96,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         videoDimensions,
         setVideoDimensions,
         estSize,
-        estComplexity,
         estIsSampling,
         estIsLargeWarning,
         triggerExport,
@@ -155,12 +106,4 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       {children}
     </EditorContext.Provider>
   )
-}
-
-export function useEditor() {
-  const context = useContext(EditorContext)
-  if (!context) {
-    throw new Error('useEditor must be used within an EditorProvider')
-  }
-  return context
 }

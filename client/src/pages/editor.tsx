@@ -10,7 +10,8 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { getVideo } from '@/lib/video-state'
-import { EditorProvider, useEditor } from '@/context/editor-context'
+import { EditorProvider } from '@/context/editor-context'
+import { useEditor } from '@/hooks/use-editor'
 import { useState } from 'react'
 
 export default function Editor() {

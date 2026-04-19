@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { getVideo } from '@/lib/video-state'
 import { resolveCropRect } from '@/lib/crop-utils'
-import { GIFEncoder, quantize, applyPalette } from 'gifenc'
+import { GIFEncoder, quantize } from 'gifenc'
+import { sampleFrames, clearSampleCache } from '@/lib/export-frame-sampler'
 
 export interface ExportSettings {
   fps: number
@@ -45,6 +46,39 @@ function validateExportInputs(
     // 100.1 allows for tiny floating-point rounding
     throw new Error('Crop rectangle is outside the video bounds.')
   }
+}
+
+function applyPaletteExact(
+  rgba: Uint8ClampedArray,
+  palette: number[][],
+  cache: Map<number, number>
+) {
+  const index = new Uint8Array(rgba.length / 4)
+  for (let i = 0; i < rgba.length; i += 4) {
+    const r = rgba[i]
+    const g = rgba[i + 1]
+    const b = rgba[i + 2]
+
+    const key = (r << 16) | (g << 8) | b
+    let idx = cache.get(key)
+
+    if (idx === undefined) {
+      let mindist = 1e100
+      let k = 0
+      for (let j = 0; j < palette.length; j++) {
+        const p = palette[j]
+        const dist = (p[0] - r) ** 2 + (p[1] - g) ** 2 + (p[2] - b) ** 2
+        if (dist < mindist) {
+          mindist = dist
+          k = j
+        }
+      }
+      idx = k
+      cache.set(key, k)
+    }
+    index[i / 4] = idx
+  }
+  return index
 }
 
 /* ------------------------------------------------------------------ */
@@ -121,10 +155,9 @@ export function useGifExport() {
       const numFrames = Math.max(1, Math.floor(duration * settings.fps))
       const delay = Math.round(1000 / settings.fps)
 
-      const maxColors = Math.max(
-        32,
-        Math.round(256 - (settings.quality - 1) * (224 / 29))
-      )
+      // Always use max possible colors for video to prevent gross banding.
+      // gifenc's applyPalette truncates to 16-bit by default, but we'll use exact matching
+      const maxColors = settings.fastMode ? 128 : 256
 
       canvas.width = settings.width
       canvas.height = settings.height
@@ -134,44 +167,19 @@ export function useGifExport() {
       const encoder = GIFEncoder()
 
       // Pass 1: sample a few frames and build one palette
-      const samplesToTake = Math.min(settings.fastMode ? 3 : 5, numFrames)
-      const sampleStep = Math.max(1, Math.floor(numFrames / samplesToTake))
-      const samplePixels: Uint8ClampedArray[] = []
+      const samplesToTake = Math.min(settings.fastMode ? 3 : 15, numFrames)
 
-      for (
-        let s = 0;
-        s < numFrames && samplePixels.length < samplesToTake;
-        s += sampleStep
-      ) {
-        const time = settings.trimRange[0] + s / settings.fps
-        tempVideo.currentTime = time
-
-        await new Promise<void>((resolve) => {
-          const onSeeked = () => {
-            tempVideo.removeEventListener('seeked', onSeeked)
-            resolve()
-          }
-          tempVideo.addEventListener('seeked', onSeeked)
-        })
-
-        ctx.drawImage(
-          tempVideo,
-          crop.x,
-          crop.y,
-          crop.w,
-          crop.h,
-          0,
-          0,
-          settings.width,
-          settings.height
-        )
-
-        samplePixels.push(
-          ctx.getImageData(0, 0, settings.width, settings.height).data
-        )
-
-        setProgress(Math.round((samplePixels.length / samplesToTake) * 30))
-      }
+      const samplePixels = await sampleFrames({
+        videoUrl: url,
+        totalFrames: numFrames,
+        samplesToTake,
+        fps: settings.fps,
+        trimRange: settings.trimRange,
+        crop,
+        width: settings.width,
+        height: settings.height,
+        onProgress: (p) => setProgress(Math.round(p * 30)),
+      })
 
       const totalLength = samplePixels.reduce((sum, arr) => sum + arr.length, 0)
       const combined = new Uint8ClampedArray(totalLength)
@@ -183,6 +191,10 @@ export function useGifExport() {
       }
 
       const globalPalette = quantize(combined, maxColors)
+
+      // Share a single mapping cache across the entire video for extreme performance
+      // while using exact 24-bit match instead of gifenc's 16-bit truncation
+      const colorCache = new Map<number, number>()
 
       // Pass 2: encode every frame with the same palette
       for (let i = 0; i < numFrames; i++) {
@@ -215,7 +227,12 @@ export function useGifExport() {
           settings.width,
           settings.height
         )
-        const index = applyPalette(imageData.data, globalPalette)
+
+        const index = applyPaletteExact(
+          imageData.data,
+          globalPalette,
+          colorCache
+        )
 
         encoder.writeFrame(index, settings.width, settings.height, {
           palette: globalPalette,

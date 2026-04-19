@@ -22,7 +22,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useEditor } from '@/context/editor-context'
+import { useEditor } from '@/hooks/use-editor'
 
 export function SettingsPanel() {
   const {
@@ -39,7 +39,6 @@ export function SettingsPanel() {
     videoDimensions,
     crop,
     estSize,
-    estComplexity,
     estIsSampling,
     estIsLargeWarning,
     triggerExport,
@@ -228,23 +227,6 @@ export function SettingsPanel() {
               {estSize}
             </span>
           </div>
-
-          {/* Complexity badge */}
-          {estComplexity && (
-            <div className="flex items-center gap-1.5">
-              <span
-                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
-                  estComplexity === 'low'
-                    ? 'bg-emerald-500/15 text-emerald-400'
-                    : estComplexity === 'medium'
-                      ? 'bg-amber-500/15 text-amber-400'
-                      : 'bg-rose-500/15 text-rose-400'
-                }`}
-              >
-                {estComplexity} motion
-              </span>
-            </div>
-          )}
 
           {/* Large file warning */}
           {estIsLargeWarning && (
