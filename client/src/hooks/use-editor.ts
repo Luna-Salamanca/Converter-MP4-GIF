@@ -34,6 +34,7 @@ export interface EditorContextType {
 
   // Actions
   triggerExport: () => void
+  cancelExport: () => void
   isExporting: boolean
   progress: number
 }

@@ -42,6 +42,7 @@ export function SettingsPanel() {
     estIsSampling,
     estIsLargeWarning,
     triggerExport,
+    cancelExport,
     isExporting,
     progress,
   } = useEditor()
@@ -240,28 +241,32 @@ export function SettingsPanel() {
           )}
         </div>
 
-        <Button
-          className="w-full gap-2 font-bold"
-          size="lg"
-          onClick={triggerExport}
-          disabled={isExporting}
-        >
-          {isExporting ? (
-            <>
-              <div className="border-background/30 border-t-background size-4 animate-spin rounded-full border-2" />
-              {progress === 100
-                ? 'Finalizing...'
-                : progress > 0
-                  ? `Processing ${progress}%`
-                  : 'Processing...'}
-            </>
-          ) : (
-            <>
-              <Download className="size-4" />
-              Export GIF
-            </>
-          )}
-        </Button>
+        {isExporting ? (
+          <Button
+            className="w-full gap-2 font-bold"
+            size="lg"
+            variant="destructive"
+            onClick={cancelExport}
+          >
+            <div className="border-background/30 border-t-background size-4 animate-spin rounded-full border-2" />
+            Cancel (
+            {progress === 100
+              ? 'Finalizing...'
+              : progress > 0
+                ? `${progress}%`
+                : 'Processing...'}
+            )
+          </Button>
+        ) : (
+          <Button
+            className="w-full gap-2 font-bold"
+            size="lg"
+            onClick={triggerExport}
+          >
+            <Download className="size-4" />
+            Export GIF
+          </Button>
+        )}
         <Button variant="outline" className="w-full gap-2">
           <Share2 className="size-4" />
           Share

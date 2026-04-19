@@ -18,7 +18,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     height: 1080,
   })
 
-  const { exportGif, isExporting, progress } = useGifExport()
+  const { exportGif, cancelExport, isExporting, progress } = useGifExport()
 
   useEffect(() => {
     const { file } = getVideo()
@@ -99,6 +99,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         estIsSampling,
         estIsLargeWarning,
         triggerExport,
+        cancelExport,
         isExporting,
         progress,
       }}

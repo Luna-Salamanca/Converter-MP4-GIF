@@ -1,9 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { getVideo } from '@/lib/video-state'
 import { resolveCropRect } from '@/lib/crop-utils'
-import { GIFEncoder, quantize } from 'gifenc'
-import { sampleFrames, clearSampleCache } from '@/lib/export-frame-sampler'
+import { sampleFrames } from '@/lib/export-frame-sampler'
 
 export interface ExportSettings {
   fps: number
@@ -17,8 +16,8 @@ export interface ExportSettings {
 }
 
 /**
- * Pre-flight validation.  Throws a user-friendly Error if something
- * is obviously wrong so the catch block can surface it via toast.
+ * Pre-flight validation. Throws a user-friendly Error if something
+ * is obviously wrong.
  */
 function validateExportInputs(
   settings: ExportSettings,
@@ -30,55 +29,18 @@ function validateExportInputs(
       'Video dimensions could not be read. Try re-loading the file.'
     )
   }
-
   if (settings.width <= 0 || settings.height <= 0) {
     throw new Error(
-      `Invalid output dimensions (${settings.width}×${settings.height}). ` +
-        'Adjust the resolution or crop settings.'
+      `Invalid output dimensions (${settings.width}×${settings.height}).`
     )
   }
-
   const { x, y, width, height } = settings.crop
   if (width <= 0 || height <= 0) {
     throw new Error('Crop area has zero width or height.')
   }
   if (x < 0 || y < 0 || x + width > 100.1 || y + height > 100.1) {
-    // 100.1 allows for tiny floating-point rounding
     throw new Error('Crop rectangle is outside the video bounds.')
   }
-}
-
-function applyPaletteExact(
-  rgba: Uint8ClampedArray,
-  palette: number[][],
-  cache: Map<number, number>
-) {
-  const index = new Uint8Array(rgba.length / 4)
-  for (let i = 0; i < rgba.length; i += 4) {
-    const r = rgba[i]
-    const g = rgba[i + 1]
-    const b = rgba[i + 2]
-
-    const key = (r << 16) | (g << 8) | b
-    let idx = cache.get(key)
-
-    if (idx === undefined) {
-      let mindist = 1e100
-      let k = 0
-      for (let j = 0; j < palette.length; j++) {
-        const p = palette[j]
-        const dist = (p[0] - r) ** 2 + (p[1] - g) ** 2 + (p[2] - b) ** 2
-        if (dist < mindist) {
-          mindist = dist
-          k = j
-        }
-      }
-      idx = k
-      cache.set(key, k)
-    }
-    index[i / 4] = idx
-  }
-  return index
 }
 
 /* ------------------------------------------------------------------ */
@@ -89,198 +51,264 @@ export function useGifExport() {
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  const exportGif = useCallback(async (settings: ExportSettings) => {
-    const { url } = getVideo()
+  const workerRef = useRef<Worker | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-    if (!url) {
-      toast({
-        title: 'Export Failed',
-        description: 'No video source found to export.',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    setIsExporting(true)
-    setProgress(0)
-
-    toast({
-      title: 'Starting Export...',
-      description: settings.fastMode
-        ? 'Generating fast preview...'
-        : 'Processing your video frames. This may take a moment.',
-    })
-
-    const tempVideo = document.createElement('video')
-    const canvas = document.createElement('canvas')
-    let objectUrl: string | null = null
-
-    const cleanup = () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl)
-        objectUrl = null
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate()
+        workerRef.current = null
       }
-
-      tempVideo.removeAttribute('src')
-      tempVideo.load()
-
-      canvas.width = 0
-      canvas.height = 0
-    }
-
-    try {
-      tempVideo.src = url
-      tempVideo.crossOrigin = 'anonymous'
-      tempVideo.muted = true
-      tempVideo.playsInline = true
-
-      await new Promise<void>((resolve, reject) => {
-        tempVideo.onloadedmetadata = () => resolve()
-        tempVideo.onerror = (e) => reject(e)
-      })
-
-      const originalWidth = tempVideo.videoWidth
-      const originalHeight = tempVideo.videoHeight
-
-      // Validate before doing any heavy work
-      validateExportInputs(settings, originalWidth, originalHeight)
-
-      // Resolve & clamp crop coordinates
-      const crop = resolveCropRect(settings.crop, originalWidth, originalHeight)
-
-      const duration = Math.max(
-        0.1,
-        settings.trimRange[1] - settings.trimRange[0]
-      )
-      const numFrames = Math.max(1, Math.floor(duration * settings.fps))
-      const delay = Math.round(1000 / settings.fps)
-
-      // Always use max possible colors for video to prevent gross banding.
-      // gifenc's applyPalette truncates to 16-bit by default, but we'll use exact matching
-      const maxColors = settings.fastMode ? 128 : 256
-
-      canvas.width = settings.width
-      canvas.height = settings.height
-      const ctx = canvas.getContext('2d', { willReadFrequently: true })
-      if (!ctx) throw new Error('Could not create canvas context')
-
-      const encoder = GIFEncoder()
-
-      // Pass 1: sample a few frames and build one palette
-      const samplesToTake = Math.min(settings.fastMode ? 3 : 15, numFrames)
-
-      const samplePixels = await sampleFrames({
-        videoUrl: url,
-        totalFrames: numFrames,
-        samplesToTake,
-        fps: settings.fps,
-        trimRange: settings.trimRange,
-        crop,
-        width: settings.width,
-        height: settings.height,
-        onProgress: (p) => setProgress(Math.round(p * 30)),
-      })
-
-      const totalLength = samplePixels.reduce((sum, arr) => sum + arr.length, 0)
-      const combined = new Uint8ClampedArray(totalLength)
-      let offset = 0
-
-      for (const pixels of samplePixels) {
-        combined.set(pixels, offset)
-        offset += pixels.length
-      }
-
-      const globalPalette = quantize(combined, maxColors)
-
-      // Share a single mapping cache across the entire video for extreme performance
-      // while using exact 24-bit match instead of gifenc's 16-bit truncation
-      const colorCache = new Map<number, number>()
-
-      // Pass 2: encode every frame with the same palette
-      for (let i = 0; i < numFrames; i++) {
-        const time = settings.trimRange[0] + i / settings.fps
-        tempVideo.currentTime = time
-
-        await new Promise<void>((resolve) => {
-          const onSeeked = () => {
-            tempVideo.removeEventListener('seeked', onSeeked)
-            resolve()
-          }
-          tempVideo.addEventListener('seeked', onSeeked)
-        })
-
-        ctx.drawImage(
-          tempVideo,
-          crop.x,
-          crop.y,
-          crop.w,
-          crop.h,
-          0,
-          0,
-          settings.width,
-          settings.height
-        )
-
-        const imageData = ctx.getImageData(
-          0,
-          0,
-          settings.width,
-          settings.height
-        )
-
-        const index = applyPaletteExact(
-          imageData.data,
-          globalPalette,
-          colorCache
-        )
-
-        encoder.writeFrame(index, settings.width, settings.height, {
-          palette: globalPalette,
-          delay,
-          repeat: 0,
-        })
-
-        setProgress(30 + Math.round(((i + 1) / numFrames) * 60))
-      }
-
-      setProgress(90)
-      encoder.finish()
-
-      const raw = encoder.bytes()
-      const buf = new ArrayBuffer(raw.byteLength)
-      new Uint8Array(buf).set(raw)
-
-      const blob = new Blob([buf], { type: 'image/gif' })
-      objectUrl = URL.createObjectURL(blob)
-
-      const link = document.createElement('a')
-      link.href = objectUrl
-      link.download = (settings.filename || 'export') + '.gif'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-      setProgress(100)
-      toast({
-        title: 'Export Complete!',
-        description: 'Your GIF has been generated and downloaded.',
-      })
-    } catch (error) {
-      console.error('Export error:', error)
-      toast({
-        title: 'Export Failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
-      })
-    } finally {
-      cleanup()
-      setIsExporting(false)
-      setProgress(0)
     }
   }, [])
 
+  const cancelExport = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    if (workerRef.current) {
+      // Send cancel just in case, but terminate immediately halts the worker thread
+      workerRef.current.postMessage({ type: 'CANCEL' })
+      workerRef.current.terminate()
+      workerRef.current = null
+    }
+    setIsExporting(false)
+    setProgress(0)
+    toast({
+      title: 'Export Cancelled',
+      description: 'The GIF export was cleanly aborted.',
+    })
+  }, [])
+
+  const exportGif = useCallback(
+    async (settings: ExportSettings) => {
+      const { url } = getVideo()
+      if (!url) {
+        toast({
+          title: 'Export Failed',
+          description: 'No video source found.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (isExporting) return
+
+      setIsExporting(true)
+      setProgress(0)
+
+      abortControllerRef.current = new AbortController()
+      const signal = abortControllerRef.current.signal
+
+      toast({
+        title: 'Starting Export...',
+        description: settings.fastMode
+          ? 'Generating fast preview...'
+          : 'Processing your video frames. This may take a moment.',
+      })
+
+      const tempVideo = document.createElement('video')
+      const canvas = document.createElement('canvas')
+      let objectUrl: string | null = null
+
+      // Ensure pristine worker
+      if (workerRef.current) {
+        workerRef.current.terminate()
+      }
+      const worker = new Worker(
+        new URL('../workers/export.worker.ts', import.meta.url),
+        { type: 'module' }
+      )
+      workerRef.current = worker
+
+      const cleanup = () => {
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl)
+          objectUrl = null
+        }
+        tempVideo.removeAttribute('src')
+        tempVideo.load()
+        canvas.width = 0
+        canvas.height = 0
+        if (workerRef.current === worker) {
+          worker.terminate()
+          workerRef.current = null
+        }
+      }
+
+      try {
+        tempVideo.src = url
+        tempVideo.crossOrigin = 'anonymous'
+        tempVideo.muted = true
+        tempVideo.playsInline = true
+
+        await new Promise<void>((resolve, reject) => {
+          tempVideo.onloadedmetadata = () => resolve()
+          tempVideo.onerror = (e) => reject(e)
+        })
+
+        if (signal.aborted) throw new Error('Aborted')
+
+        const originalWidth = tempVideo.videoWidth
+        const originalHeight = tempVideo.videoHeight
+
+        validateExportInputs(settings, originalWidth, originalHeight)
+        const crop = resolveCropRect(
+          settings.crop,
+          originalWidth,
+          originalHeight
+        )
+
+        const duration = Math.max(
+          0.1,
+          settings.trimRange[1] - settings.trimRange[0]
+        )
+        const numFrames = Math.max(1, Math.floor(duration * settings.fps))
+        const delay = Math.round(1000 / settings.fps)
+        const maxColors = settings.fastMode ? 128 : 256
+
+        canvas.width = settings.width
+        canvas.height = settings.height
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
+        if (!ctx) throw new Error('Could not create canvas context')
+
+        const samplesToTake = Math.min(settings.fastMode ? 3 : 15, numFrames)
+        const samplePixels = await sampleFrames({
+          videoUrl: url,
+          totalFrames: numFrames,
+          samplesToTake,
+          fps: settings.fps,
+          trimRange: settings.trimRange,
+          crop,
+          width: settings.width,
+          height: settings.height,
+          onProgress: (p) => setProgress(Math.round(p * 30)),
+          signal,
+        })
+
+        if (signal.aborted) throw new Error('Aborted')
+
+        // Helper to wrap worker messages in Promises for lock-step sequence
+        const sendToWorker = (
+          message: any,
+          transfer: Transferable[] = []
+        ): Promise<any> => {
+          return new Promise((resolve, reject) => {
+            const handler = (e: MessageEvent) => {
+              const { type, payload } = e.data
+              if (type === 'ERROR') {
+                worker.removeEventListener('message', handler)
+                reject(new Error(payload.error))
+              } else {
+                worker.removeEventListener('message', handler)
+                resolve(payload)
+              }
+            }
+            worker.addEventListener('message', handler)
+            worker.postMessage(message, transfer)
+          })
+        }
+
+        await sendToWorker({
+          type: 'INIT_PALETTE',
+          payload: { samples: samplePixels, maxColors },
+        })
+
+        if (signal.aborted) throw new Error('Aborted')
+
+        // Pass 2: Iterate strictly lock-step to limit memory consumption
+        for (let i = 0; i < numFrames; i++) {
+          if (signal.aborted) throw new Error('Aborted')
+
+          const time = settings.trimRange[0] + i / settings.fps
+          tempVideo.currentTime = time
+
+          await new Promise<void>((resolve) => {
+            const onSeeked = () => {
+              tempVideo.removeEventListener('seeked', onSeeked)
+              resolve()
+            }
+            tempVideo.addEventListener('seeked', onSeeked)
+          })
+
+          ctx.drawImage(
+            tempVideo,
+            crop.x,
+            crop.y,
+            crop.w,
+            crop.h,
+            0,
+            0,
+            settings.width,
+            settings.height
+          )
+          const imageData = ctx.getImageData(
+            0,
+            0,
+            settings.width,
+            settings.height
+          )
+
+          await sendToWorker({
+            type: 'ENCODE_FRAME',
+            payload: {
+              frameData: imageData.data,
+              width: settings.width,
+              height: settings.height,
+              delay,
+              index: i,
+            },
+          })
+          setProgress(30 + Math.round(((i + 1) / numFrames) * 60))
+        }
+
+        if (signal.aborted) throw new Error('Aborted')
+        setProgress(90)
+
+        const payload = await sendToWorker({ type: 'FINISH' })
+        const buffer = payload.buffer
+
+        if (signal.aborted) throw new Error('Aborted')
+
+        const blob = new Blob([buffer], { type: 'image/gif' })
+        objectUrl = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = objectUrl
+        link.download = (settings.filename || 'export') + '.gif'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        setProgress(100)
+        toast({
+          title: 'Export Complete!',
+          description: 'Your GIF has been generated and downloaded.',
+        })
+      } catch (error: any) {
+        if (error.message !== 'Aborted') {
+          console.error('Export error:', error)
+          toast({
+            title: 'Export Failed',
+            description:
+              error instanceof Error ? error.message : 'Unknown error',
+            variant: 'destructive',
+          })
+        }
+      } finally {
+        cleanup()
+        setIsExporting(false)
+        setProgress(0)
+      }
+    },
+    [isExporting]
+  )
+
   return {
     exportGif,
+    cancelExport,
     isExporting,
     progress,
   }
