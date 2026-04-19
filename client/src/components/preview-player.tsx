@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion'
-import { Maximize2, Image as ImageIcon, Crop } from 'lucide-react'
+import { Maximize2, Crop } from 'lucide-react'
 import { getVideo } from '@/lib/video-state'
 import { useEffect, useState, useRef } from 'react'
 import { CropOverlay } from './crop-overlay'
@@ -122,10 +121,9 @@ export function PreviewPlayer({
               ref={videoRef}
               src={videoUrl}
               className="h-full w-full object-contain"
-              // controls // Remove native controls to rely on custom ones or sync them properly
               autoPlay={isPlaying}
               loop
-              muted // Muted for autoplay to work reliably in browsers
+              muted
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={(e) => {
                 const video = e.currentTarget
@@ -152,25 +150,12 @@ export function PreviewPlayer({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Abstract Video Placeholder */}
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-90" />
+            <div className="absolute inset-0 bg-linear-to-br from-gray-900 to-black opacity-90" />
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 brightness-100 contrast-150" />
 
-            <motion.div
-              className="bg-primary/20 relative z-10 size-32 rounded-full blur-3xl"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-            />
-            <motion.div
-              className="bg-secondary/10 relative z-10 -ml-12 size-48 rounded-full blur-3xl"
-              animate={{
-                scale: [1.2, 1, 1.2],
-                opacity: [0.2, 0.5, 0.2],
-              }}
-              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-            />
+            {/* CSS pulsing blobs replacing framer-motion animations */}
+            <div className="bg-primary/20 relative z-10 size-32 animate-[blob-pulse_4s_ease-in-out_infinite] rounded-full blur-3xl" />
+            <div className="bg-secondary/10 relative z-10 -ml-12 size-48 animate-[blob-pulse_5s_ease-in-out_1s_infinite] rounded-full blur-3xl" />
           </div>
         )}
 

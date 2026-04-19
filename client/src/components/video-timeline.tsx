@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
 import { Play, Pause, ChevronLeft, ChevronRight, Scissors } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -342,7 +341,7 @@ export function VideoTimeline({
         {/* Background Container - Dark Track */}
         <div className="absolute inset-0 overflow-hidden rounded-lg border border-white/5 bg-[#0A0A0A] shadow-inner">
           {/* Ruler Area */}
-          <div className="absolute top-0 right-0 left-0 z-10 h-8 overflow-hidden border-b border-white/5 bg-white/[0.02]">
+          <div className="absolute top-0 right-0 left-0 z-10 h-8 overflow-hidden border-b border-white/5 bg-white/2">
             <RulerTicks />
           </div>
 
@@ -387,7 +386,7 @@ export function VideoTimeline({
           style={{ left: `${(smoothTime / duration) * 100}%` }}
         >
           {/* Playhead Handle Top */}
-          <div className="absolute -top-1 h-0 w-0 -translate-x-1/2 border-t-[8px] border-r-[6px] border-l-[6px] border-t-red-500 border-r-transparent border-l-transparent drop-shadow-sm" />
+          <div className="absolute -top-1 h-0 w-0 -translate-x-1/2 border-t-8 border-r-[6px] border-l-[6px] border-t-red-500 border-r-transparent border-l-transparent drop-shadow-sm" />
 
           {/* Line Glow */}
           <div className="absolute inset-y-0 -left-px w-[3px] bg-red-500/20 blur-[1px]" />

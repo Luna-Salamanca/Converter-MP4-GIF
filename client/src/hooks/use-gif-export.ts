@@ -1,12 +1,11 @@
 import { useState, useCallback } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { getVideo } from '@/lib/video-state'
-// @ts-ignore
-import GIF from 'gif.js'
+import { GIFEncoder, quantize, applyPalette } from 'gifenc'
 
 export interface ExportSettings {
   fps: number
-  quality: number // 1-30 (1 is best)
+  quality: number // 1-30 (1 is best) — remapped to gifenc's maxColors
   width: number
   height: number
   crop: { x: number; y: number; width: number; height: number }
@@ -71,37 +70,14 @@ export function useGifExport() {
         settings.trimRange[1] - settings.trimRange[0]
       )
       const numFrames = Math.max(1, Math.floor(duration * settings.fps))
-      const delay = 1000 / settings.fps
+      const delay = Math.round(1000 / settings.fps)
 
-      const gif = new GIF({
-        workers: navigator.hardwareConcurrency || 4,
-        quality: settings.quality,
-        width: settings.width,
-        height: settings.height,
-        workerScript: import.meta.env.BASE_URL + 'gif.worker.js',
-      })
-
-      gif.on('progress', (p: number) => {
-        setProgress(Math.round(p * 100))
-      })
-
-      gif.on('finished', (blob: Blob) => {
-        setIsExporting(false)
-        setProgress(0)
-
-        const image = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = image
-        link.download = (settings.filename || 'export') + '.gif'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        toast({
-          title: 'Export Complete!',
-          description: 'Your GIF has been generated and downloaded.',
-        })
-      })
+      // gifenc uses maxColors (16–256). Map quality 1-30 → 256-32 colors.
+      // quality=1 (best) → 256 colors, quality=30 (worst) → 32 colors.
+      const maxColors = Math.max(
+        32,
+        Math.round(256 - (settings.quality - 1) * (224 / 29))
+      )
 
       const canvas = document.createElement('canvas')
       canvas.width = settings.width
@@ -110,6 +86,9 @@ export function useGifExport() {
 
       if (!ctx) throw new Error('Could not create canvas context')
 
+      const encoder = GIFEncoder()
+
+      // --- Frame capture phase (0–50% progress) ---
       for (let i = 0; i < numFrames; i++) {
         const time = settings.trimRange[0] + i / settings.fps
         tempVideo.currentTime = time
@@ -134,14 +113,53 @@ export function useGifExport() {
           settings.height
         )
 
-        gif.addFrame(ctx, { copy: true, delay: delay })
-        setProgress(Math.round((i / numFrames) * 50)) // Capture phase is first 50%
+        // Get raw RGBA pixel data
+        const imageData = ctx.getImageData(
+          0,
+          0,
+          settings.width,
+          settings.height
+        )
+        const palette = quantize(imageData.data, maxColors)
+        const index = applyPalette(imageData.data, palette)
+
+        encoder.writeFrame(index, settings.width, settings.height, {
+          palette,
+          delay,
+          repeat: 0, // loop forever
+        })
+
+        setProgress(Math.round(((i + 1) / numFrames) * 80))
       }
 
-      gif.render()
+      // --- Finish encoding (80–100%) ---
+      setProgress(90)
+      encoder.finish()
+      setProgress(100)
+
+      const raw = encoder.bytes()
+      const buf = new ArrayBuffer(raw.byteLength)
+      new Uint8Array(buf).set(raw)
+      const blob = new Blob([buf], { type: 'image/gif' })
+      const image = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = image
+      link.download = (settings.filename || 'export') + '.gif'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      setIsExporting(false)
+      setProgress(0)
+
+      toast({
+        title: 'Export Complete!',
+        description: 'Your GIF has been generated and downloaded.',
+      })
     } catch (error) {
       console.error('Export error:', error)
       setIsExporting(false)
+      setProgress(0)
       toast({
         title: 'Export Failed',
         description: error instanceof Error ? error.message : 'Unknown error',

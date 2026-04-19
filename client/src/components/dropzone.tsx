@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { Upload, FileVideo, AlertCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useLocation } from 'wouter'
 import { cn } from '@/lib/utils'
 import { setVideo } from '@/lib/video-state'
@@ -49,12 +48,9 @@ export function Dropzone() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+      <div
         className={cn(
-          'group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-300',
+          'animate-rise group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-300',
           isDragging
             ? 'border-primary bg-primary/5 shadow-primary/10 scale-[1.02] shadow-2xl'
             : 'border-border hover:border-primary/50 hover:bg-muted/30'
@@ -72,7 +68,7 @@ export function Dropzone() {
           onChange={handleFileInput}
         />
 
-        <div className="from-primary/5 to-secondary/5 pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="from-primary/5 to-secondary/5 pointer-events-none absolute inset-0 bg-linear-to-br opacity-0 transition-opacity group-hover:opacity-100" />
 
         <div className="relative z-10 flex flex-col items-center gap-6">
           <div
@@ -106,21 +102,24 @@ export function Dropzone() {
             <span className="bg-muted rounded px-2 py-1">ProRes</span>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-destructive/10 text-destructive mt-4 flex items-center gap-2 rounded-lg p-4 text-sm font-medium"
-          >
+      {/* Error banner — CSS animated height collapse via grid trick */}
+      <div
+        className={cn(
+          'grid transition-all duration-300',
+          error
+            ? 'mt-4 grid-rows-[1fr] opacity-100'
+            : 'grid-rows-[0fr] opacity-0'
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="bg-destructive/10 text-destructive flex items-center gap-2 rounded-lg p-4 text-sm font-medium">
             <AlertCircle className="size-4" />
             {error}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

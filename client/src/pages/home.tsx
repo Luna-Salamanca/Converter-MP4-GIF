@@ -1,6 +1,5 @@
 import { Layout } from '@/components/layout'
 import { Dropzone } from '@/components/dropzone'
-import { motion } from 'framer-motion'
 import { Link } from 'wouter'
 import generatedImage from '/abstract_geometric_gradient_background.png'
 
@@ -15,16 +14,11 @@ export default function Home() {
             alt="Background"
             className="h-full w-full object-cover opacity-20 dark:opacity-30"
           />
-          <div className="from-background via-background/90 to-background absolute inset-0 bg-gradient-to-b" />
+          <div className="from-background via-background/90 to-background absolute inset-0 bg-linear-to-b" />
         </div>
 
         <div className="relative z-10 container flex flex-col items-center gap-12 px-4 py-20 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="max-w-3xl space-y-6"
-          >
+          <div className="animate-rise max-w-3xl space-y-6">
             <div className="bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium">
               <span className="relative flex h-2 w-2">
                 <span className="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
@@ -33,7 +27,7 @@ export default function Home() {
               v1.0 Now Available
             </div>
 
-            <h1 className="font-display from-foreground to-foreground/60 bg-gradient-to-b bg-clip-text text-5xl font-bold tracking-tight text-balance text-transparent md:text-7xl">
+            <h1 className="font-display from-foreground to-foreground/60 bg-linear-to-b bg-clip-text text-5xl font-bold tracking-tight text-balance text-transparent md:text-7xl">
               Turn Video Moments into{' '}
               <span className="text-primary">Perfect GIFs</span>
             </h1>
@@ -43,16 +37,11 @@ export default function Home() {
               high-quality animated GIFs directly in your browser. No server
               uploads.{' '}
             </p>
-          </motion.div>
+          </div>
 
           <Dropzone />
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 1 }}
-            className="mt-8 grid grid-cols-2 gap-8 text-center md:grid-cols-4 md:gap-16"
-          >
+          <div className="animate-fade-in mt-8 grid grid-cols-2 gap-8 text-center md:grid-cols-4 md:gap-16">
             {[
               { label: 'Privacy First', desc: '100% Client-side' },
               { label: 'High Quality', desc: 'Optimized Colors' },
@@ -73,7 +62,7 @@ export default function Home() {
                 </div>
               )
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </Layout>

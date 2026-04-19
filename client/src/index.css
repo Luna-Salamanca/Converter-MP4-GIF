@@ -118,3 +118,44 @@
     @apply font-display tracking-tight;
   }
 }
+
+/* ── Page entry animations (replaces framer-motion) ─────────────────────── */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.6s ease forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s 0.4s ease both;
+}
+
+@keyframes blob-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
+  }
+}
