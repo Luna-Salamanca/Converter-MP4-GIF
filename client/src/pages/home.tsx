@@ -24,7 +24,7 @@ export default function Home() {
                 <span className="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
                 <span className="bg-primary relative inline-flex h-2 w-2 rounded-full"></span>
               </span>
-              v1.0 Now Available
+              v1.1 Now Available
             </div>
 
             <h1 className="font-display from-foreground to-foreground/60 bg-linear-to-b bg-clip-text text-5xl font-bold tracking-tight text-balance text-transparent md:text-7xl">

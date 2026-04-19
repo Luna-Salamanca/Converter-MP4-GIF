@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <main>{children}</main>
       <footer className="border-border/40 bg-muted/20 mt-20 border-t py-8">
         <div className="text-muted-foreground container mx-auto px-4 text-center text-sm">
-          <p>© 2025 Cassi-Fi. All processing happens in your browser.</p>
+          <p>© 2026 Cassi-Fi. All processing happens in your browser.</p>
           {import.meta.env.VITE_LAST_UPDATED_DATE && (
             <p className="mt-1">
               Last updated:{' '}
