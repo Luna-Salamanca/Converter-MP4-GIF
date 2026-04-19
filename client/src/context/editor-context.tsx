@@ -4,9 +4,12 @@ import {
   useState,
   ReactNode,
   useEffect,
+  useMemo,
 } from 'react'
 import { useGifExport, ExportSettings } from '@/hooks/use-gif-export'
+import { useSizeEstimate } from '@/hooks/use-size-estimate'
 import { getVideo } from '@/lib/video-state'
+import type { EstimationResult } from '@/lib/gif-size-estimator'
 
 interface EditorContextType {
   // Settings
@@ -34,8 +37,11 @@ interface EditorContextType {
   videoDimensions: { width: number; height: number }
   setVideoDimensions: (dim: { width: number; height: number }) => void
 
-  // Derived / Calculated
+  // Size estimation
   estSize: string
+  estComplexity: EstimationResult['complexity'] | null
+  estIsSampling: boolean
+  estIsLargeWarning: boolean
 
   // Actions
   triggerExport: () => void
@@ -57,7 +63,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     width: 1920,
     height: 1080,
   })
-  const [estSize, setEstSize] = useState('Calculating...')
 
   const { exportGif, isExporting, progress } = useGifExport()
 
@@ -68,38 +73,26 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     }
   }, [filename])
 
-  // Size estimation logic
-  useEffect(() => {
-    const duration = Math.max(0.1, trimRange[1] - trimRange[0])
-    const effectiveFps = fastMode ? Math.min(fps, 15) : fps
-    const numFrames = duration * effectiveFps
+  // Content-aware size estimation via sampled frames
+  const estimateSettings = useMemo(
+    () => ({
+      fps,
+      compression,
+      width,
+      trimRange: [trimRange[0], trimRange[1]] as [number, number],
+      crop,
+      videoDimensions,
+      fastMode,
+    }),
+    [fps, compression, width, trimRange, crop, videoDimensions, fastMode]
+  )
 
-    const originalWidth = videoDimensions.width
-    const originalHeight = videoDimensions.height
-    const cropW = Math.floor((crop.width / 100) * originalWidth)
-    const cropH = Math.floor((crop.height / 100) * originalHeight)
-
-    let currentGifWidth = cropW
-    let currentGifHeight = cropH
-
-    if (width !== 'original') {
-      const targetWidth = parseInt(width)
-      const ratio = cropH / cropW
-      currentGifWidth = targetWidth
-      currentGifHeight = Math.round(targetWidth * ratio)
-    }
-
-    const pixelCount = currentGifWidth * currentGifHeight
-    const effectiveQuality = fastMode
-      ? 30
-      : Math.max(1, Math.floor(compression / 3))
-    const compressionFactor = ((30 - effectiveQuality) / 29) * 1.5 + 0.5
-
-    const bytes = numFrames * pixelCount * compressionFactor
-    const mb = bytes / (1024 * 1024)
-
-    setEstSize(mb < 1 ? `${(mb * 1024).toFixed(0)} KB` : `${mb.toFixed(1)} MB`)
-  }, [fps, trimRange, crop, videoDimensions, compression, width, fastMode])
+  const {
+    label: estSize,
+    complexity: estComplexity,
+    isSampling: estIsSampling,
+    isLargeWarning: estIsLargeWarning,
+  } = useSizeEstimate(estimateSettings)
 
   const triggerExport = () => {
     const originalWidth = videoDimensions.width
@@ -151,6 +144,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         videoDimensions,
         setVideoDimensions,
         estSize,
+        estComplexity,
+        estIsSampling,
+        estIsLargeWarning,
         triggerExport,
         isExporting,
         progress,

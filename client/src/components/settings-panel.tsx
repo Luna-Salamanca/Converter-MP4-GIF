@@ -6,6 +6,8 @@ import {
   FileVideo,
   FilePenLine,
   Gauge,
+  AlertTriangle,
+  Activity,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
@@ -37,6 +39,9 @@ export function SettingsPanel() {
     videoDimensions,
     crop,
     estSize,
+    estComplexity,
+    estIsSampling,
+    estIsLargeWarning,
     triggerExport,
     isExporting,
     progress,
@@ -209,10 +214,50 @@ export function SettingsPanel() {
 
       {/* Action Bar */}
       <div className="bg-muted/10 border-border space-y-3 border-t p-4">
-        <div className="text-muted-foreground mb-2 flex items-center justify-between text-xs">
-          <span>Est. Size:</span>
-          <span className="text-foreground font-mono font-bold">{estSize}</span>
+        {/* Estimated size */}
+        <div className="space-y-1.5">
+          <div className="text-muted-foreground flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1">
+              <Activity className="size-3" />
+              Estimated size
+            </span>
+            <span className="text-foreground flex items-center gap-1.5 font-mono font-bold">
+              {estIsSampling && (
+                <div className="border-primary/30 border-t-primary size-3 animate-spin rounded-full border-2" />
+              )}
+              {estSize}
+            </span>
+          </div>
+
+          {/* Complexity badge */}
+          {estComplexity && (
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
+                  estComplexity === 'low'
+                    ? 'bg-emerald-500/15 text-emerald-400'
+                    : estComplexity === 'medium'
+                      ? 'bg-amber-500/15 text-amber-400'
+                      : 'bg-rose-500/15 text-rose-400'
+                }`}
+              >
+                {estComplexity} motion
+              </span>
+            </div>
+          )}
+
+          {/* Large file warning */}
+          {estIsLargeWarning && (
+            <div className="bg-destructive/10 text-destructive flex items-start gap-1.5 rounded-md px-2 py-1.5 text-[10px] leading-tight">
+              <AlertTriangle className="mt-0.5 size-3 shrink-0" />
+              <span>
+                Output may be very large. Consider reducing dimensions, FPS, or
+                trimming the clip.
+              </span>
+            </div>
+          )}
         </div>
+
         <Button
           className="w-full gap-2 font-bold"
           size="lg"
