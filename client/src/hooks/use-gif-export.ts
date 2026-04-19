@@ -19,7 +19,6 @@ export function useGifExport() {
   const [progress, setProgress] = useState(0)
 
   const exportGif = useCallback(async (settings: ExportSettings) => {
-    console.log('Starting export process with settings:', settings)
     const { url } = getVideo()
 
     if (!url) {
@@ -88,7 +87,60 @@ export function useGifExport() {
 
       const encoder = GIFEncoder()
 
-      // --- Frame capture phase (0–50% progress) ---
+      // --- Pass 1: Palette sampling (0–30% progress) ---
+      // Seek a small number of evenly-spaced frames from across the clip,
+      // concatenate their pixel data, and call quantize() exactly once.
+      // fast mode → 3 samples, normal mode → 5 samples.
+      const samplesToTake = Math.min(settings.fastMode ? 3 : 5, numFrames)
+      const sampleStep = Math.max(1, Math.floor(numFrames / samplesToTake))
+      const samplePixels: Uint8ClampedArray[] = []
+
+      for (
+        let s = 0;
+        s < numFrames && samplePixels.length < samplesToTake;
+        s += sampleStep
+      ) {
+        const time = settings.trimRange[0] + s / settings.fps
+        tempVideo.currentTime = time
+
+        await new Promise<void>((resolve) => {
+          const onSeeked = () => {
+            tempVideo.removeEventListener('seeked', onSeeked)
+            resolve()
+          }
+          tempVideo.addEventListener('seeked', onSeeked)
+        })
+
+        ctx.drawImage(
+          tempVideo,
+          cropX,
+          cropY,
+          cropW,
+          cropH,
+          0,
+          0,
+          settings.width,
+          settings.height
+        )
+        samplePixels.push(
+          ctx.getImageData(0, 0, settings.width, settings.height).data
+        )
+        setProgress(Math.round((samplePixels.length / samplesToTake) * 30))
+      }
+
+      // Concatenate sample pixel arrays and build one global palette.
+      const totalLength = samplePixels.reduce((sum, arr) => sum + arr.length, 0)
+      const combined = new Uint8ClampedArray(totalLength)
+      let offset = 0
+      for (const pixels of samplePixels) {
+        combined.set(pixels, offset)
+        offset += pixels.length
+      }
+      const globalPalette = quantize(combined, maxColors)
+
+      // --- Pass 2: Frame encoding (30–90% progress) ---
+      // We pass the same globalPalette to every writeFrame call so the encoder
+      // uses a consistent color table across all frames.
       for (let i = 0; i < numFrames; i++) {
         const time = settings.trimRange[0] + i / settings.fps
         tempVideo.currentTime = time
@@ -112,27 +164,24 @@ export function useGifExport() {
           settings.width,
           settings.height
         )
-
-        // Get raw RGBA pixel data
         const imageData = ctx.getImageData(
           0,
           0,
           settings.width,
           settings.height
         )
-        const palette = quantize(imageData.data, maxColors)
-        const index = applyPalette(imageData.data, palette)
+        const index = applyPalette(imageData.data, globalPalette)
 
         encoder.writeFrame(index, settings.width, settings.height, {
-          palette,
+          palette: globalPalette,
           delay,
           repeat: 0, // loop forever
         })
 
-        setProgress(Math.round(((i + 1) / numFrames) * 80))
+        setProgress(30 + Math.round(((i + 1) / numFrames) * 60))
       }
 
-      // --- Finish encoding (80–100%) ---
+      // --- Finish encoding (90–100%) ---
       setProgress(90)
       encoder.finish()
       setProgress(100)
@@ -148,6 +197,13 @@ export function useGifExport() {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+
+      // Release all media and object URL resources
+      URL.revokeObjectURL(image)
+      tempVideo.src = ''
+      tempVideo.load()
+      canvas.width = 0
+      canvas.height = 0
 
       setIsExporting(false)
       setProgress(0)
