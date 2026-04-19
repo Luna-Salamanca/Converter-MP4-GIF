@@ -3,6 +3,7 @@ import { toast } from '@/hooks/use-toast'
 import { getVideo } from '@/lib/video-state'
 import { resolveCropRect } from '@/lib/crop-utils'
 import { sampleFrames } from '@/lib/export-frame-sampler'
+import type { WorkerRequest, WorkerResponse } from '../workers/export.types'
 
 export interface ExportSettings {
   fps: number
@@ -48,39 +49,44 @@ function validateExportInputs(
 /* ------------------------------------------------------------------ */
 
 export function useGifExport() {
-  const [isExporting, setIsExporting] = useState(false)
+  const [isExporting, setIsExportingState] = useState(false)
   const [progress, setProgress] = useState(0)
 
+  const isExportingRef = useRef(false)
   const workerRef = useRef<Worker | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate()
-        workerRef.current = null
-      }
+  const setIsExporting = useCallback((val: boolean) => {
+    isExportingRef.current = val
+    setIsExportingState(val)
+  }, [])
+
+  const teardownWorker = useCallback(() => {
+    if (workerRef.current) {
+      workerRef.current.terminate()
+      workerRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    return () => {
+      teardownWorker()
+    }
+  }, [teardownWorker])
 
   const cancelExport = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
     }
-    if (workerRef.current) {
-      // Send cancel just in case, but terminate immediately halts the worker thread
-      workerRef.current.postMessage({ type: 'CANCEL' })
-      workerRef.current.terminate()
-      workerRef.current = null
-    }
+    teardownWorker()
     setIsExporting(false)
     setProgress(0)
     toast({
       title: 'Export Cancelled',
       description: 'The GIF export was cleanly aborted.',
     })
-  }, [])
+  }, [teardownWorker, setIsExporting])
 
   const exportGif = useCallback(
     async (settings: ExportSettings) => {
@@ -94,7 +100,7 @@ export function useGifExport() {
         return
       }
 
-      if (isExporting) return
+      if (isExportingRef.current) return
 
       setIsExporting(true)
       setProgress(0)
@@ -114,9 +120,7 @@ export function useGifExport() {
       let objectUrl: string | null = null
 
       // Ensure pristine worker
-      if (workerRef.current) {
-        workerRef.current.terminate()
-      }
+      teardownWorker()
       const worker = new Worker(
         new URL('../workers/export.worker.ts', import.meta.url),
         { type: 'module' }
@@ -132,10 +136,7 @@ export function useGifExport() {
         tempVideo.load()
         canvas.width = 0
         canvas.height = 0
-        if (workerRef.current === worker) {
-          worker.terminate()
-          workerRef.current = null
-        }
+        teardownWorker()
       }
 
       try {
@@ -190,20 +191,23 @@ export function useGifExport() {
 
         if (signal.aborted) throw new Error('Aborted')
 
-        // Helper to wrap worker messages in Promises for lock-step sequence
-        const sendToWorker = (
-          message: any,
+        // Helper to wrap worker messages in Promises matching specific type
+        const sendToWorker = <TResponse extends WorkerResponse>(
+          message: WorkerRequest,
+          expectedType: TResponse['type'],
           transfer: Transferable[] = []
-        ): Promise<any> => {
+        ): Promise<TResponse> => {
           return new Promise((resolve, reject) => {
-            const handler = (e: MessageEvent) => {
-              const { type, payload } = e.data
-              if (type === 'ERROR') {
+            const handler = (e: MessageEvent<WorkerResponse>) => {
+              const data = e.data
+              if (data.type === 'ERROR') {
                 worker.removeEventListener('message', handler)
-                reject(new Error(payload.error))
-              } else {
+                reject(new Error(data.payload.error))
+                return
+              }
+              if (data.type === expectedType) {
                 worker.removeEventListener('message', handler)
-                resolve(payload)
+                resolve(data as TResponse)
               }
             }
             worker.addEventListener('message', handler)
@@ -211,17 +215,18 @@ export function useGifExport() {
           })
         }
 
-        await sendToWorker({
-          type: 'INIT_PALETTE',
-          payload: { samples: samplePixels, maxColors },
-        })
+        await sendToWorker(
+          {
+            type: 'INIT_PALETTE',
+            payload: { samples: samplePixels, maxColors },
+          },
+          'PALETTE_READY'
+        )
 
         if (signal.aborted) throw new Error('Aborted')
 
         // Pass 2: Iterate strictly lock-step to limit memory consumption
         for (let i = 0; i < numFrames; i++) {
-          if (signal.aborted) throw new Error('Aborted')
-
           const time = settings.trimRange[0] + i / settings.fps
           tempVideo.currentTime = time
 
@@ -232,6 +237,8 @@ export function useGifExport() {
             }
             tempVideo.addEventListener('seeked', onSeeked)
           })
+
+          if (signal.aborted) throw new Error('Aborted')
 
           ctx.drawImage(
             tempVideo,
@@ -251,27 +258,35 @@ export function useGifExport() {
             settings.height
           )
 
-          await sendToWorker({
-            type: 'ENCODE_FRAME',
-            payload: {
-              frameData: imageData.data,
-              width: settings.width,
-              height: settings.height,
-              delay,
-              index: i,
+          await sendToWorker(
+            {
+              type: 'ENCODE_FRAME',
+              payload: {
+                frameData: imageData.data,
+                width: settings.width,
+                height: settings.height,
+                delay,
+                index: i,
+              },
             },
-          })
+            'FRAME_ENCODED'
+          )
+
+          if (signal.aborted) throw new Error('Aborted')
+
           setProgress(30 + Math.round(((i + 1) / numFrames) * 60))
         }
 
-        if (signal.aborted) throw new Error('Aborted')
         setProgress(90)
 
-        const payload = await sendToWorker({ type: 'FINISH' })
-        const buffer = payload.buffer
+        const finishedResponse = await sendToWorker<{
+          type: 'FINISHED'
+          payload: { buffer: ArrayBuffer }
+        }>({ type: 'FINISH' }, 'FINISHED')
 
         if (signal.aborted) throw new Error('Aborted')
 
+        const buffer = finishedResponse.payload.buffer
         const blob = new Blob([buffer], { type: 'image/gif' })
         objectUrl = URL.createObjectURL(blob)
 
@@ -303,7 +318,7 @@ export function useGifExport() {
         setProgress(0)
       }
     },
-    [isExporting]
+    [teardownWorker, setIsExporting]
   )
 
   return {

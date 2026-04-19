@@ -1,4 +1,6 @@
+/// <reference lib="webworker" />
 import { GIFEncoder, quantize } from 'gifenc'
+import type { WorkerRequest } from './export.types'
 
 function applyPaletteExact(
   rgba: Uint8ClampedArray | Uint8Array,
@@ -38,21 +40,26 @@ let globalPalette: number[][] | null = null
 let colorCache = new Map<number, number>()
 let isCancelled = false
 
-self.onmessage = (e: MessageEvent) => {
-  const { type, payload } = e.data
+function resetState() {
+  encoder = null
+  globalPalette = null
+  colorCache.clear()
+  isCancelled = false
+}
 
-  if (type === 'CANCEL') {
+self.onmessage = (e: MessageEvent<WorkerRequest>) => {
+  const request = e.data
+
+  if (request.type === 'CANCEL') {
     isCancelled = true
-    encoder = null
-    globalPalette = null
-    colorCache.clear()
+    resetState()
     return
   }
 
-  if (type === 'INIT_PALETTE') {
+  if (request.type === 'INIT_PALETTE') {
     isCancelled = false
     try {
-      const { samples, maxColors } = payload
+      const { samples, maxColors } = request.payload
       const totalLength = samples.reduce(
         (sum: number, arr: Uint8ClampedArray) => sum + arr.length,
         0
@@ -79,10 +86,10 @@ self.onmessage = (e: MessageEvent) => {
     }
   }
 
-  if (type === 'ENCODE_FRAME') {
+  if (request.type === 'ENCODE_FRAME') {
     if (isCancelled) return
     try {
-      const { frameData, width, height, delay, index } = payload
+      const { frameData, width, height, delay, index } = request.payload
       if (!globalPalette || !encoder)
         throw new Error('Worker not initialized with palette')
 
@@ -109,7 +116,7 @@ self.onmessage = (e: MessageEvent) => {
     }
   }
 
-  if (type === 'FINISH') {
+  if (request.type === 'FINISH') {
     if (isCancelled) return
     try {
       if (!encoder) throw new Error('Worker not initialized with palette')
@@ -121,14 +128,9 @@ self.onmessage = (e: MessageEvent) => {
       const buf = new ArrayBuffer(raw.byteLength)
       new Uint8Array(buf).set(raw)
 
-      self.postMessage(
-        { type: 'FINISHED', payload: { buffer: buf } },
-        { transfer: [buf] }
-      )
+      self.postMessage({ type: 'FINISHED', payload: { buffer: buf } }, [buf])
 
-      encoder = null
-      globalPalette = null
-      colorCache.clear()
+      resetState()
     } catch (err: any) {
       self.postMessage({
         type: 'ERROR',
