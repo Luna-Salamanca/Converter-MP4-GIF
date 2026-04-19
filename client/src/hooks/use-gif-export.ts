@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { getVideo } from '@/lib/video-state'
+import { resolveCropRect } from '@/lib/crop-utils'
 import { GIFEncoder, quantize, applyPalette } from 'gifenc'
 
 export interface ExportSettings {
@@ -13,6 +14,42 @@ export interface ExportSettings {
   filename: string
   fastMode: boolean
 }
+
+/**
+ * Pre-flight validation.  Throws a user-friendly Error if something
+ * is obviously wrong so the catch block can surface it via toast.
+ */
+function validateExportInputs(
+  settings: ExportSettings,
+  videoWidth: number,
+  videoHeight: number
+): void {
+  if (videoWidth === 0 || videoHeight === 0) {
+    throw new Error(
+      'Video dimensions could not be read. Try re-loading the file.'
+    )
+  }
+
+  if (settings.width <= 0 || settings.height <= 0) {
+    throw new Error(
+      `Invalid output dimensions (${settings.width}×${settings.height}). ` +
+        'Adjust the resolution or crop settings.'
+    )
+  }
+
+  const { x, y, width, height } = settings.crop
+  if (width <= 0 || height <= 0) {
+    throw new Error('Crop area has zero width or height.')
+  }
+  if (x < 0 || y < 0 || x + width > 100.1 || y + height > 100.1) {
+    // 100.1 allows for tiny floating-point rounding
+    throw new Error('Crop rectangle is outside the video bounds.')
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hook                                                               */
+/* ------------------------------------------------------------------ */
 
 export function useGifExport() {
   const [isExporting, setIsExporting] = useState(false)
@@ -71,14 +108,11 @@ export function useGifExport() {
       const originalWidth = tempVideo.videoWidth
       const originalHeight = tempVideo.videoHeight
 
-      const cropX = Math.floor((settings.crop.x / 100) * originalWidth)
-      const cropY = Math.floor((settings.crop.y / 100) * originalHeight)
-      const cropW = Math.floor((settings.crop.width / 100) * originalWidth)
-      const cropH = Math.floor((settings.crop.height / 100) * originalHeight)
+      // Validate before doing any heavy work
+      validateExportInputs(settings, originalWidth, originalHeight)
 
-      if (settings.width <= 0 || settings.height <= 0) {
-        throw new Error('Invalid output dimensions')
-      }
+      // Resolve & clamp crop coordinates
+      const crop = resolveCropRect(settings.crop, originalWidth, originalHeight)
 
       const duration = Math.max(
         0.1,
@@ -122,10 +156,10 @@ export function useGifExport() {
 
         ctx.drawImage(
           tempVideo,
-          cropX,
-          cropY,
-          cropW,
-          cropH,
+          crop.x,
+          crop.y,
+          crop.w,
+          crop.h,
           0,
           0,
           settings.width,
@@ -165,10 +199,10 @@ export function useGifExport() {
 
         ctx.drawImage(
           tempVideo,
-          cropX,
-          cropY,
-          cropW,
-          cropH,
+          crop.x,
+          crop.y,
+          crop.w,
+          crop.h,
           0,
           0,
           settings.width,

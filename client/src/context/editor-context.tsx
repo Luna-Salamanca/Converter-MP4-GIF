@@ -9,6 +9,7 @@ import {
 import { useGifExport, ExportSettings } from '@/hooks/use-gif-export'
 import { useSizeEstimate } from '@/hooks/use-size-estimate'
 import { getVideo } from '@/lib/video-state'
+import { resolveCropRect } from '@/lib/crop-utils'
 import type { EstimationResult } from '@/lib/gif-size-estimator'
 
 interface EditorContextType {
@@ -97,15 +98,14 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const triggerExport = () => {
     const originalWidth = videoDimensions.width
     const originalHeight = videoDimensions.height
-    const cropW = Math.floor((crop.width / 100) * originalWidth)
-    const cropH = Math.floor((crop.height / 100) * originalHeight)
+    const cropSafe = resolveCropRect(crop, originalWidth, originalHeight)
 
-    let gifWidth = cropW
-    let gifHeight = cropH
+    let gifWidth = cropSafe.w
+    let gifHeight = cropSafe.h
 
     if (width !== 'original') {
       const targetWidth = parseInt(width)
-      const ratio = cropH / cropW
+      const ratio = cropSafe.h / cropSafe.w
       gifWidth = targetWidth
       gifHeight = Math.round(targetWidth * ratio)
     }

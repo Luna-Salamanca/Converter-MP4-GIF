@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { getVideo } from '@/lib/video-state'
+import { resolveCropRect } from '@/lib/crop-utils'
 import {
   estimateGifSize,
   formatEstimationRange,
@@ -66,15 +67,14 @@ export function useSizeEstimate(
         /* ---- Resolve output dimensions ---- */
         const originalWidth = s.videoDimensions.width
         const originalHeight = s.videoDimensions.height
-        const cropW = Math.floor((s.crop.width / 100) * originalWidth)
-        const cropH = Math.floor((s.crop.height / 100) * originalHeight)
+        const cropSafe = resolveCropRect(s.crop, originalWidth, originalHeight)
 
-        let gifWidth = cropW
-        let gifHeight = cropH
+        let gifWidth = cropSafe.w
+        let gifHeight = cropSafe.h
         if (s.width !== 'original') {
           const tw = parseInt(s.width)
           gifWidth = tw
-          gifHeight = Math.round(tw * (cropH / cropW))
+          gifHeight = Math.round(tw * (cropSafe.h / cropSafe.w))
         }
 
         const effectiveFps = s.fastMode ? Math.min(s.fps, 15) : s.fps
@@ -119,8 +119,8 @@ export function useSizeEstimate(
           return
         }
 
-        const cropX = Math.floor((s.crop.x / 100) * originalWidth)
-        const cropY = Math.floor((s.crop.y / 100) * originalHeight)
+        // Use the already-clamped crop values
+        const { x: cropX, y: cropY, w: cropW, h: cropH } = cropSafe
 
         const sampleStep = Math.max(1, Math.floor(totalFrames / samplesToTake))
         const samplePixels: Uint8ClampedArray[] = []
@@ -207,7 +207,6 @@ export function useSizeEstimate(
 
     return () => clearTimeout(timer)
     // We deliberately spread all settings fields into the dep array
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     settings.fps,
     settings.compression,
