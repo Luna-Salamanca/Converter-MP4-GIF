@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite dev --port 5000",
     "build": "tsx scripts/build.ts",
-    "test": "tsx --test client/src/lib/*.test.ts client/src/features/cassie/*.test.ts",
+    "test": "tsx --test \"client/src/**/*.test.ts\"",
     "check": "tsc",
     "lint": "eslint .",
     "format": "prettier --write .",
